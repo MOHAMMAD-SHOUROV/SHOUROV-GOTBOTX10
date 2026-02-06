@@ -22,6 +22,9 @@ module.exports = {
  }
  },
 
+if (!args[0] || args[0].startsWith("@")) {
+  return;
+}
  onStart: async function ({ api, event, args }) {
  const validCategories = ["waifu", "neko", "shinobu", "megumin", "bully", "cuddle", "cry", "hug", "awoo", "kiss", "lick", "pat", "smug", "bonk", "yeet", "blush", "smile", "wave", "highfive", "handhold", "nom", "bite", "glomp", "slap", "kill", "kick", "happy", "wink", "poke", "dance", "cringe"];
  
