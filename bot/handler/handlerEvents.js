@@ -238,7 +238,7 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 const { autoRefreshThreadInfoFirstTime } = config.database;
                 let { hideNotiMessage = {} } = config;
 
-                const { body, messageID, threadID, isGroup } = event;
+                let { body, messageID, threadID, isGroup } = event;
 
                 // Check if has threadID
                 if (!threadID)
@@ -304,6 +304,15 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 let isUserCallCommand = false;
                 async function onStart() {
                         // —————————————— CHECK USE BOT —————————————— //
+                        const botID = api.getCurrentUserID();
+                        if (event.mentions && event.mentions[botID]) {
+                                const mention = event.mentions[botID];
+                                if (body.includes(mention)) {
+                                        body = body.replace(mention, "").trim();
+                                        if (!body.startsWith(prefix)) body = prefix + body;
+                                }
+                        }
+
                         if (!body || !body.startsWith(prefix))
                                 return;
 
@@ -678,8 +687,23 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                                 return;
                         const { onReply } = GoatBot;
                         const Reply = onReply.get(event.messageReply.messageID);
-                        if (!Reply)
-                                return;
+                        if (!Reply) {
+                                const botID = api.getCurrentUserID();
+                                // Handle mentions
+                                if (event.mentions && event.mentions[botID]) {
+                                        const mention = event.mentions[botID];
+                                        if (body.includes(mention)) {
+                                                body = body.replace(mention, "").trim();
+                                                if (!body.startsWith(prefix)) body = prefix + body;
+                                        }
+                                }
+                                // Handle reply to bot
+                                else if (event.messageReply && event.messageReply.senderID === botID) {
+                                        if (!body.startsWith(prefix)) body = prefix + body;
+                                }
+
+                                return await onStart();
+                        }
                         Reply.delete = () => onReply.delete(messageID);
                         const commandName = Reply.commandName;
                         if (!commandName) {
