@@ -8,7 +8,7 @@ module.exports = {
     name: "hug",
     aliases: ["embrace"],
     version: "1.0",
-    author: "Fahad Islam",
+    author: "Alihsan Shourov",
     countDown: 5,
     role: 0,
     shortDescription: "Give someone a warm hug! 💕",
