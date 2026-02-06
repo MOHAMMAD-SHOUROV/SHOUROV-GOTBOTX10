@@ -278,6 +278,12 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         userModel, threadModel, prefix, dashBoardModel,
                         globalModel, dashBoardData, globalData, envCommands,
                         envEvents, envGlobal, role,
+                        resolveTargetID: function (args, event) {
+                                if (event.messageReply) return event.messageReply.senderID || event.messageReply.author;
+                                if (event.mentions && Object.keys(event.mentions).length > 0) return Object.keys(event.mentions)[0];
+                                if (args && args.length > 0 && !isNaN(args[0])) return args[0];
+                                return null;
+                        },
                         removeCommandNameFromBody: function removeCommandNameFromBody(body_, prefix_, commandName_) {
                                 if ([body_, prefix_, commandName_].every(x => nullAndUndefined.includes(x)))
                                         throw new Error("Please provide body, prefix and commandName to use this function, this function without parameters only support for onStart");
@@ -305,10 +311,19 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                 async function onStart() {
                         // —————————————— CHECK USE BOT —————————————— //
                         const botID = api.getCurrentUserID();
+                        let isMentioned = false;
                         if (event.mentions && event.mentions[botID]) {
                                 const mention = event.mentions[botID];
                                 if (body.includes(mention)) {
                                         body = body.replace(mention, "").trim();
+                                        if (!body.startsWith(prefix)) body = prefix + body;
+                                        isMentioned = true;
+                                }
+                        }
+                        if (!isMentioned && (!event.mentions || Object.keys(event.mentions).length === 0)) {
+                                const botName = config.nickName || config.name || "Bot";
+                                if (body.trim().toLowerCase().startsWith("@" + botName.toLowerCase())) {
+                                        body = body.trim().slice(botName.length + 1).trim(); // Remove @BotName
                                         if (!body.startsWith(prefix)) body = prefix + body;
                                 }
                         }
@@ -690,16 +705,29 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
                         if (!Reply) {
                                 const botID = api.getCurrentUserID();
                                 // Handle mentions
+                                let isMentioned = false;
                                 if (event.mentions && event.mentions[botID]) {
                                         const mention = event.mentions[botID];
                                         if (body.includes(mention)) {
                                                 body = body.replace(mention, "").trim();
                                                 if (!body.startsWith(prefix)) body = prefix + body;
+                                                isMentioned = true;
+                                        }
+                                }
+                                if (!isMentioned && (!event.mentions || Object.keys(event.mentions).length === 0)) {
+                                        const botName = config.nickName || config.name || "Bot";
+                                        if (body.trim().toLowerCase().startsWith("@" + botName.toLowerCase())) {
+                                                body = body.trim().slice(botName.length + 1).trim();
+                                                if (!body.startsWith(prefix)) body = prefix + body;
+                                                isMentioned = true;
                                         }
                                 }
                                 // Handle reply to bot
-                                else if (event.messageReply && event.messageReply.senderID === botID) {
-                                        if (!body.startsWith(prefix)) body = prefix + body;
+                                if (!isMentioned && event.messageReply) {
+                                        const replySender = event.messageReply.senderID || event.messageReply.author || event.messageReply.userID;
+                                        if (replySender == botID) {
+                                                if (!body.startsWith(prefix)) body = prefix + body;
+                                        }
                                 }
 
                                 return await onStart();
