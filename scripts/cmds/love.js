@@ -47,7 +47,7 @@ module.exports = {
       // LEFT PROFILE PERFECT CENTER
 ctx.save();
 ctx.beginPath();
-ctx.arc(430, 430, 160, 0, Math.PI * 2); // circle center
+ctx.arc(470, 470, 160, 0, Math.PI * 2); // circle center
 ctx.closePath();
 ctx.clip();
 ctx.drawImage(avatar1, 270, 270, 320, 320); // image center matched
@@ -55,7 +55,7 @@ ctx.restore();
       // RIGHT PROFILE PERFECT CENTER
 ctx.save();
 ctx.beginPath();
-ctx.arc(1010, 430, 160, 0, Math.PI * 2); 
+ctx.arc(1010, 470, 160, 0, Math.PI * 2); 
 ctx.closePath();
 ctx.clip();
 ctx.drawImage(avatar2, 850, 270, 320, 320);
