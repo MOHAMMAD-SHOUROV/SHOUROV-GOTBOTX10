@@ -34,31 +34,32 @@ module.exports = {
       const ctx = canvas.getContext("2d");
 
       // ===== Load Background (Your Banner) =====
-      const background = await loadImage(
-        "https://files.catbox.moe/2abtdf.jpg"
-      );
+      const background = await loadImage("https://files.catbox.moe/2abtdf.jpg");
 
-      ctx.drawImage(background, 0, 0, 1440, 1080);
+const canvas = createCanvas(background.width, background.height);
+const ctx = canvas.getContext("2d");
 
+ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
       const avatar1 = await loadImage(avatarURL1);
       const avatar2 = await loadImage(avatarURL2);
 
       // ===== LEFT USER =====
+// LEFT PROFILE
 ctx.save();
 ctx.beginPath();
-ctx.arc(420, 500, 175, 0, Math.PI * 2); // position + radius
+ctx.arc(430, 450, 180, 0, Math.PI * 2); 
 ctx.closePath();
 ctx.clip();
-ctx.drawImage(avatar1, 245, 325, 350, 350);
+ctx.drawImage(avatar1, 250, 270, 360, 360);
 ctx.restore();
 
-// ===== RIGHT USER =====
+// RIGHT PROFILE
 ctx.save();
 ctx.beginPath();
-ctx.arc(1020, 500, 175, 0, Math.PI * 2);
+ctx.arc(1100, 450, 180, 0, Math.PI * 2);
 ctx.closePath();
 ctx.clip();
-ctx.drawImage(avatar2, 845, 325, 350, 350);
+ctx.drawImage(avatar2, 920, 270, 360, 360);
 ctx.restore();
 
       // ===== TEMP FOLDER =====
