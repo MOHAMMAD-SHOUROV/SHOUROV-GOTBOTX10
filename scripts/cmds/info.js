@@ -34,7 +34,7 @@ module.exports = {
             const botName = "𝐒𝐇𝐎𝐔𝐑𝐎𝐕_𝐁𝐎𝐓";
             const botPrefix = `${global.GoatBot.config.prefix}`;
             const authorName = "𝐀𝐥𝐈𝐇𝐒𝐀𝐍 𝐒𝐇𝐎𝐔𝐑𝐎𝐕";
-            const authorFB = "https://www.facebook.com/shourov.sm24";
+            const authorFB = "https://www.facebook.com/profile.php?id=61588161951831";
             const authorInsta = " 01709281334";
             const status = "𝑺𝑰𝑵𝑮𝑳𝑬..!";
 
