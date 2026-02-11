@@ -1,4 +1,5 @@
 const axios = require("axios");
+const https = require("https");
 const fs = require("fs-extra");
 const path = require("path");
 const { createCanvas, loadImage } = require("canvas");
@@ -10,19 +11,29 @@ module.exports = {
     author: "Alihsan Shourov",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "Dog with tagged face" },
+    shortDescription: "Dog with profile",
+    longDescription: "Dog image with mentioned/replied user's profile on face",
     category: "fun",
-    guide: { en: "+dog @mention OR reply" }
+    guide: "+dog @mention / reply / UID"
   },
 
   onStart: async function ({ message, event, usersData }) {
     try {
       const senderID = event.senderID;
 
-      const targetID =
+      // ===== Target Detect (Reply / Mention / UID) =====
+      let targetID =
         event.messageReply?.senderID ||
-        Object.keys(event.mentions || {})[0] ||
-        senderID; // যদি mention না করে, নিজেরটাই বসবে
+        Object.keys(event.mentions || {})[0];
+
+      if (!targetID && event.body) {
+        const uidArg = event.body.split(" ")[1];
+        if (uidArg && !isNaN(uidArg)) {
+          targetID = uidArg;
+        }
+      }
+
+      if (!targetID) targetID = senderID;
 
       // ===== Get Dog Image =====
       const res = await axios.get("https://dog.ceo/api/breeds/image/random");
@@ -32,30 +43,40 @@ module.exports = {
       const avatarURL = await usersData.getAvatarUrl(targetID);
 
       // ===== Load Images =====
-      const dogImage = await loadImage(dogURL);
+      const dogImg = await loadImage(dogURL);
       const avatar = await loadImage(avatarURL);
 
-      const canvas = createCanvas(dogImage.width, dogImage.height);
+      // ===== Create Canvas =====
+      const canvas = createCanvas(dogImg.width, dogImg.height);
       const ctx = canvas.getContext("2d");
 
-      // Draw Dog
-      ctx.drawImage(dogImage, 0, 0);
+      ctx.drawImage(dogImg, 0, 0, canvas.width, canvas.height);
 
-      // ===== Face Position (Adjust If Needed) =====
-      const size = 200; // avatar size
-      const x = dogImage.width / 2 - size / 2; 
-      const y = dogImage.height / 3 - size / 2;
+      // ===== Draw Profile on Dog Face (Center) =====
+      const size = 200;
 
-      // Circle Clip
       ctx.save();
       ctx.beginPath();
-      ctx.arc(x + size / 2, y + size / 2, size / 2, 0, Math.PI * 2);
+      ctx.arc(
+        canvas.width / 2,
+        canvas.height / 2,
+        size / 2,
+        0,
+        Math.PI * 2
+      );
       ctx.closePath();
       ctx.clip();
-      ctx.drawImage(avatar, x, y, size, size);
+
+      ctx.drawImage(
+        avatar,
+        canvas.width / 2 - size / 2,
+        canvas.height / 2 - size / 2,
+        size,
+        size
+      );
       ctx.restore();
 
-      // ===== Save Temp =====
+      // ===== Temp Folder =====
       const tmpDir = path.join(__dirname, "tmp");
       if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
@@ -64,14 +85,14 @@ module.exports = {
 
       message.reply(
         {
-          body: "🐶 তুই কুত্তা",
+          body: "🐶 Here's your doggo!",
           attachment: fs.createReadStream(filePath)
         },
         () => fs.unlinkSync(filePath)
       );
 
     } catch (err) {
-      console.log("DOG ERROR:", err);
+      console.error("DOG ERROR:", err);
       message.reply("⚠️ Dog command failed.");
     }
   }
