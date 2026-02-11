@@ -5,7 +5,7 @@ const path = require("path");
 module.exports = {
   config: {
     name: "love",
-    version: "3.0.0",
+    version: "3.2.0",
     author: "Alihsan Shourov",
     countDown: 5,
     role: 0,
@@ -25,49 +25,55 @@ module.exports = {
       if (!targetID)
         return message.reply("❌ Please mention or reply someone!");
 
-      // ===== Get Avatar URLs =====
+      // Avatar URLs
       const avatarURL1 = await usersData.getAvatarUrl(senderID);
       const avatarURL2 = await usersData.getAvatarUrl(targetID);
 
-      // ===== Create Canvas (Banner Size) =====
-      const canvas = createCanvas(1440, 1080);
-      const ctx = canvas.getContext("2d");
-
-      // ===== Load Background (Your Banner) =====
+      // Load Banner
       const background = await loadImage("https://files.catbox.moe/2abtdf.jpg");
 
-const canvas = createCanvas(background.width, background.height);
-const ctx = canvas.getContext("2d");
+      const canvas = createCanvas(background.width, background.height);
+      const ctx = canvas.getContext("2d");
 
-ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(background, 0, 0);
+
       const avatar1 = await loadImage(avatarURL1);
       const avatar2 = await loadImage(avatarURL2);
 
-      // ===== LEFT USER =====
-// LEFT PROFILE
-ctx.save();
-ctx.beginPath();
-ctx.arc(430, 450, 180, 0, Math.PI * 2); 
-ctx.closePath();
-ctx.clip();
-ctx.drawImage(avatar1, 250, 270, 360, 360);
-ctx.restore();
+      // ===== PROFILE SETTINGS =====
+      const radius = 165; // circle size
+      const size = radius * 2;
 
-// RIGHT PROFILE
-ctx.save();
-ctx.beginPath();
-ctx.arc(1100, 450, 180, 0, Math.PI * 2);
-ctx.closePath();
-ctx.clip();
-ctx.drawImage(avatar2, 920, 270, 360, 360);
-ctx.restore();
+      // LEFT PROFILE CENTER POSITION
+      const leftX = 420;
+      const leftY = 430;
 
-      // ===== TEMP FOLDER =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(leftX, leftY, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatar1, leftX - radius, leftY - radius, size, size);
+      ctx.restore();
+
+      // RIGHT PROFILE CENTER POSITION
+      const rightX = 1030;
+      const rightY = 430;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(rightX, rightY, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatar2, rightX - radius, rightY - radius, size, size);
+      ctx.restore();
+
+      // Save File
       const tmpDir = path.join(__dirname, "tmp");
       if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
       const filePath = path.join(tmpDir, `love_${Date.now()}.png`);
-      fs.writeFileSync(filePath, canvas.toBuffer());
+      fs.writeFileSync(filePath, canvas.toBuffer("image/png"));
 
       message.reply(
         {
