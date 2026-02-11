@@ -5,7 +5,7 @@ const path = require("path");
 module.exports = {
   config: {
     name: "love",
-    version: "4.1.0",
+    version: "5.0.0",
     author: "Alihsan Shourov",
     countDown: 5,
     role: 0,
@@ -23,13 +23,13 @@ module.exports = {
       if (!two)
         return message.reply("💚 Please mention or reply someone!");
 
-      // ===== Graph API Avatar =====
+      // ✅ Avatar without access token
       const avone = await jimp.read(
-        `https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
+        `https://graph.facebook.com/${one}/picture?width=512&height=512`
       );
 
       const avtwo = await jimp.read(
-        `https://graph.facebook.com/${two}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
+        `https://graph.facebook.com/${two}/picture?width=512&height=512`
       );
 
       avone.circle();
@@ -51,17 +51,18 @@ module.exports = {
 
       await background.writeAsync(filePath);
 
-      message.reply(
+      await message.reply(
         {
           body: "❤️ Love is beautiful 💞",
           attachment: fs.createReadStream(filePath)
-        },
-        () => fs.unlinkSync(filePath)
+        }
       );
+
+      fs.unlinkSync(filePath);
 
     } catch (err) {
       console.log("LOVE ERROR:", err);
-      message.reply("⚠️ Love command error.");
+      message.reply("⚠️ Love command error. Check console.");
     }
   }
 };
