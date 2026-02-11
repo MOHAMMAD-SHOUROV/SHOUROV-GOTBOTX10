@@ -44,21 +44,21 @@ module.exports = {
       const radius = 165; // circle size
       const size = radius * 2;
 
-      // LEFT PROFILE PERFECT CENTER
+      // LEFT PROFILE (Up + Left)
 ctx.save();
 ctx.beginPath();
-ctx.arc(470, 470, 160, 0, Math.PI * 2); // circle center
+ctx.arc(390, 390, 160, 0, Math.PI * 2); // center moved up + left
 ctx.closePath();
 ctx.clip();
-ctx.drawImage(avatar1, 270, 270, 320, 320); // image center matched
+ctx.drawImage(avatar1, 230, 230, 320, 320);
 ctx.restore();
-      // RIGHT PROFILE PERFECT CENTER
+      // RIGHT PROFILE (Up + Left)
 ctx.save();
 ctx.beginPath();
-ctx.arc(1060, 470, 160, 0, Math.PI * 2); 
+ctx.arc(970, 390, 160, 0, Math.PI * 2);
 ctx.closePath();
 ctx.clip();
-ctx.drawImage(avatar2, 850, 270, 320, 320);
+ctx.drawImage(avatar2, 810, 230, 320, 320);
 ctx.restore();
       // Save File
       const tmpDir = path.join(__dirname, "tmp");
