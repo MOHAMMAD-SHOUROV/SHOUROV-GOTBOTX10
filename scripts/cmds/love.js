@@ -1,67 +1,84 @@
-const jimp = require("jimp");
 const fs = require("fs-extra");
+const { createCanvas, loadImage } = require("canvas");
 const path = require("path");
 
 module.exports = {
   config: {
     name: "love",
-    version: "6.0.0",
+    version: "3.0.0",
     author: "Alihsan Shourov",
     countDown: 5,
     role: 0,
+    description: "Love banner with mention/reply",
     category: "fun",
     guide: "{p}love @mention OR reply someone"
   },
 
   onStart: async function ({ message, event, usersData }) {
     try {
-      const one = event.senderID;
-      const two =
+      const senderID = event.senderID;
+
+      const targetID =
         event.messageReply?.senderID ||
         Object.keys(event.mentions || {})[0];
 
-      if (!two)
-        return message.reply("💚 Please mention or reply someone!");
+      if (!targetID)
+        return message.reply("❌ Please mention or reply someone!");
 
-      // ===== GET AVATAR (SAFE METHOD) =====
-      const avatar1 = await usersData.getAvatarUrl(one);
-      const avatar2 = await usersData.getAvatarUrl(two);
+      // ===== Get Avatar URLs =====
+      const avatarURL1 = await usersData.getAvatarUrl(senderID);
+      const avatarURL2 = await usersData.getAvatarUrl(targetID);
 
-      const avone = await jimp.read(avatar1);
-      const avtwo = await jimp.read(avatar2);
+      // ===== Create Canvas (Banner Size) =====
+      const canvas = createCanvas(1440, 1080);
+      const ctx = canvas.getContext("2d");
 
-      avone.circle();
-      avtwo.circle();
-
-      // ===== BACKGROUND =====
-      const background = await jimp.read(
-        "https://i.imgur.com/LjpG3CW.jpeg"
+      // ===== Load Background (Your Banner) =====
+      const background = await loadImage(
+        "https://files.catbox.moe/2abtdf.jpg"
       );
 
-      background
-        .resize(1440, 1080)
-        .composite(avone.resize(470, 470), 125, 210)
-        .composite(avtwo.resize(470, 470), 800, 200);
+      ctx.drawImage(background, 0, 0, 1440, 1080);
 
-      // ===== TMP FOLDER =====
+      const avatar1 = await loadImage(avatarURL1);
+      const avatar2 = await loadImage(avatarURL2);
+
+      // ===== LEFT USER (BOY) =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(430, 540, 210, 0, Math.PI * 2); // Position + Radius
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatar1, 220, 330, 420, 420);
+      ctx.restore();
+
+      // ===== RIGHT USER (GIRL) =====
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(1010, 540, 210, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(avatar2, 800, 330, 420, 420);
+      ctx.restore();
+
+      // ===== TEMP FOLDER =====
       const tmpDir = path.join(__dirname, "tmp");
       if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
 
       const filePath = path.join(tmpDir, `love_${Date.now()}.png`);
-
-      await background.writeAsync(filePath);
+      fs.writeFileSync(filePath, canvas.toBuffer());
 
       message.reply(
         {
-          body: "❤️ Love is beautiful 💞",
+          body: "❤️ Love is Beautiful 💞",
           attachment: fs.createReadStream(filePath)
         },
         () => fs.unlinkSync(filePath)
       );
 
     } catch (err) {
-      console.log("LOVE ERROR FULL:", err);
-      message.reply("⚠️ Love command failed. Check console log.");
+      console.error("LOVE ERROR:", err);
+      message.reply("⚠️ Love command failed.");
     }
   }
 };
