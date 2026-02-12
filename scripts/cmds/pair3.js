@@ -4,13 +4,13 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "pair4",
+    name: "pair3",
     version: "2.0.0",
     author: "Alihsan Shourov",
     category: "fun",
     role: 0,
     countDown: 5,
-    guide: "{p}pair4 @mention / reply / uid"
+    guide: "{p}pair3 @mention / reply / uid"
   },
 
   onStart: async function ({ api, event, usersData, args, resolveTargetID }) {
@@ -134,9 +134,9 @@ module.exports = {
         event.messageID
       );
     } catch (err) {
-      console.error("PAIR4 ERROR:", err);
+      console.error("PAIR3 ERROR:", err);
       return api.sendMessage(
-        "❌ Pair4 command failed.",
+        "❌ Pair3 command failed.",
         event.threadID,
         event.messageID
       );
