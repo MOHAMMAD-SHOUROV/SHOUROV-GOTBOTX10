@@ -1,32 +1,41 @@
 module.exports = {
   config: {
     name: "oii",
-    version: "1.1.0",
+    version: "2.0.0",
     author: "Alihsan Shourov",
     role: 2,
     shortDescription: "Romantic message spam",
-    longDescription: "Send a series of romantic messages to a mentioned user",
+    longDescription: "Send romantic messages to mention/reply/uid",
     category: "fun",
-    guide: "{pn} @mention"
+    guide: "{pn} @mention / reply / uid"
   },
 
-  onStart: async function ({ api, event, Users }) {
+  onStart: async function ({ api, event, usersData, args, resolveTargetID }) {
     try {
-      const { threadID, mentions } = event;
+      const { threadID, messageID } = event;
 
-      // check mention
-      const mentionIDs = Object.keys(mentions || {});
-      if (mentionIDs.length === 0) {
+      // ===== TARGET DETECT =====
+      let targetID = resolveTargetID(args);
+
+      // UID manual support
+      if (!targetID && args[0] && !isNaN(args[0])) {
+        targetID = args[0];
+      }
+
+      if (!targetID) {
         return api.sendMessage(
-          "⚠️ একজনকে @mention করে কমান্ডটি ব্যবহার করুন।",
-          threadID
+          "⚠️ একজনকে mention করুন, reply দিন, অথবা UID দিন।",
+          threadID,
+          messageID
         );
       }
 
-      const targetID = mentionIDs[0];
-      const name = mentions[targetID] || await Users.getNameUser(targetID);
+      const name = await usersData.getName(targetID);
 
-      const mentionTag = [{ id: targetID, tag: name }];
+      const mentionTag = [{
+        id: targetID,
+        tag: name
+      }];
 
       const messages = [
         "স্বর্গ আমি চাই না কারণ আমি তোমাকে পেয়েছি,\nস্বপ্ন আমি দেখতে চাই না কারণ তুমিই আমার স্বপ্ন 💖",
@@ -46,28 +55,35 @@ module.exports = {
         "তোমার সাথেই আমার শান্তি 🤍"
       ];
 
-      // header
+      // ===== HEADER =====
       await api.sendMessage(
-        "🤖 𝐒𝐇𝐎𝐔𝐑𝐎𝐕 𝐁𝐎𝐓 𝐈𝐍𝐂𝐎𝐌𝐈𝐍𝐆 💌",
+        {
+          body: "🤖 𝐒𝐇𝐎𝐔𝐑𝐎𝐕 𝐁𝐎𝐓 𝐈𝐍𝐂𝐎𝐌𝐈𝐍𝐆 💌",
+        },
         threadID
       );
 
-      // send messages with delay
+      // ===== SEND WITH DELAY =====
       for (let i = 0; i < messages.length; i++) {
         setTimeout(() => {
           api.sendMessage(
             {
-              body: `${messages[i]}\n\n— ${name}`,
+              body: `${messages[i]}\n\n— @${name}`,
               mentions: mentionTag
             },
             threadID
           );
-        }, (i + 1) * 1200); // 1.2s delay
+        }, (i + 1) * 1200);
       }
 
-      // finish message
+      // ===== FINISH MESSAGE =====
       setTimeout(() => {
-        api.sendMessage("💖 Message sequence completed.", threadID);
+        api.sendMessage(
+          {
+            body: "💖 Message sequence completed.",
+          },
+          threadID
+        );
       }, (messages.length + 2) * 1200);
 
     } catch (err) {
