@@ -1,121 +1,111 @@
 const { loadImage, createCanvas } = require("canvas");
 const fs = require("fs-extra");
 const axios = require("axios");
-
-async function wrapText(ctx, text, maxWidth) {
-  return new Promise((resolve) => {
-    if (ctx.measureText(text).width < maxWidth) return resolve([text]);
-    if (ctx.measureText("W").width > maxWidth) return resolve(null);
-
-    const words = text.split(" ");
-    const lines = [];
-    let line = "";
-
-    while (words.length > 0) {
-      let split = false;
-
-      while (ctx.measureText(words[0]).width >= maxWidth) {
-        const temp = words[0];
-        words[0] = temp.slice(0, -1);
-
-        if (split) words[1] = `${temp.slice(-1)}${words[1]}`;
-        else {
-          split = true;
-          words.splice(1, 0, temp.slice(-1));
-        }
-      }
-
-      if (ctx.measureText(`${line}${words[0]}`).width < maxWidth) {
-        line += `${words.shift()} `;
-      } else {
-        lines.push(line.trim());
-        line = "";
-      }
-
-      if (words.length === 0) lines.push(line.trim());
-    }
-
-    return resolve(lines);
-  });
-}
+const path = require("path");
 
 module.exports = {
   config: {
     name: "hack",
-    author: "MAHBUB ULLASH",
+    version: "2.0.0",
+    author: "Alihsan Shourov (Fixed)",
     countDown: 5,
     role: 0,
     category: "fun",
-    shortDescription: {
-      en: "Generates a 'hacking' image with the user's profile photo.",
-    },
+    guide: "{pn} @mention | reply | uid"
   },
 
-  onStart: async function ({ api, event, args, resolveTargetID }) {
+  onStart: async function ({ api, event, args }) {
     try {
-      let pathImg = __dirname + "/tmp/background.png";
-      let pathAvt1 = __dirname + "/tmp/Avtmot.png";
+      const { senderID, messageReply, mentions } = event;
 
-      var id = resolveTargetID(args);
-      if (!id) id = event.senderID;
-      var nameInfo = await api.getUserInfo(id);
-      var name = nameInfo[id].name;
+      // ===== GET TARGET ID =====
+      let targetID;
 
-      var background = ["https://files.catbox.moe/ibmk54.jpg"];
-      var rd = background[Math.floor(Math.random() * background.length)];
+      if (args[0] && !isNaN(args[0])) {
+        targetID = args[0]; // UID support
+      } else if (messageReply?.senderID) {
+        targetID = messageReply.senderID; // Reply support
+      } else if (mentions && Object.keys(mentions).length > 0) {
+        targetID = Object.keys(mentions)[0]; // Mention support
+      } else {
+        targetID = senderID; // Default self
+      }
 
-      // Avatar
-      let getAvtmot = (
-        await axios.get(
-          `https://graph.facebook.com/${id}/picture?width=720&height=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`,
+      // ===== GET USER NAME =====
+      const userInfo = await api.getUserInfo(targetID);
+      const userName = userInfo[targetID]?.name || "Unknown User";
+
+      // ===== PATH SETUP =====
+      const tmpDir = path.join(__dirname, "tmp");
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
+
+      const bgPath = path.join(tmpDir, `hack_bg_${Date.now()}.png`);
+      const avatarPath = path.join(tmpDir, `hack_avt_${Date.now()}.png`);
+
+      // ===== DOWNLOAD AVATAR =====
+      const avatar = await jimp.read(
+  `https://graph.facebook.com/${id}/picture?width=720&height=720&access_token=6628568379|c1e620fa708a1d5696fb991c1bde5662`
+);
           { responseType: "arraybuffer" }
         )
       ).data;
-      fs.writeFileSync(pathAvt1, Buffer.from(getAvtmot, "utf-8"));
 
-      // Background
-      let getbackground = (
-        await axios.get(rd, { responseType: "arraybuffer" })
+      fs.writeFileSync(avatarPath, Buffer.from(avatarBuffer));
+
+      // ===== DOWNLOAD BACKGROUND =====
+      const bgBuffer = (
+        await axios.get(
+          "https://files.catbox.moe/ibmk54.jpg",
+          { responseType: "arraybuffer" }
+        )
       ).data;
-      fs.writeFileSync(pathImg, Buffer.from(getbackground, "utf-8"));
 
-      // Canvas work
-      let baseImage = await loadImage(pathImg);
-      let baseAvt1 = await loadImage(pathAvt1);
+      fs.writeFileSync(bgPath, Buffer.from(bgBuffer));
 
-      let canvas = createCanvas(baseImage.width, baseImage.height);
-      let ctx = canvas.getContext("2d");
+      // ===== CANVAS WORK =====
+      const background = await loadImage(bgPath);
+      const avatar = await loadImage(avatarPath);
 
-      ctx.drawImage(baseImage, 0, 0, canvas.width, canvas.height);
+      const canvas = createCanvas(background.width, background.height);
+      const ctx = canvas.getContext("2d");
 
-      ctx.font = "400 23px Arial";
-      ctx.fillStyle = "#1878F3";
+      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-      const lines = await wrapText(ctx, name, 1160);
-      ctx.fillText(lines.join("\n"), 146, 451);
+      // Name text
+      ctx.font = "bold 28px Arial";
+      ctx.fillStyle = "#00ff00";
+      ctx.fillText(userName, 150, 450);
 
-      ctx.drawImage(baseAvt1, 55, 410, 70, 70);
+      // Avatar
+      ctx.drawImage(avatar, 60, 400, 80, 80);
 
-      const imageBuffer = canvas.toBuffer();
-      fs.writeFileSync(pathImg, imageBuffer);
+      const finalPath = path.join(tmpDir, `hack_final_${Date.now()}.png`);
+      fs.writeFileSync(finalPath, canvas.toBuffer());
 
-      fs.removeSync(pathAvt1);
+      // ===== CLEAN TEMP FILES =====
+      fs.removeSync(bgPath);
+      fs.removeSync(avatarPath);
 
       return api.sendMessage(
         {
-          body: "✅ 𝙎𝙪𝙘𝙘𝙚𝙨𝙨𝙛𝙪𝙡𝙡𝙮 𝙃𝙖𝙘𝙠𝙚𝙙 𝙏𝙝𝙞𝙨 𝙐𝙨𝙚𝙧!\nMy Lord, আইড়ি বাঁচাতে চাইলে ALihsan Shourov বসকে তাড়াতাড়ি ইনবক্স দে!",
-          attachment: fs.createReadStream(pathImg),
+          body:
+            "💻 SYSTEM BREACHED!\n" +
+            `🔓 ${userName} has been hacked successfully!\n\n` +
+            "⚠️ Just kidding 😎",
+          attachment: fs.createReadStream(finalPath),
         },
         event.threadID,
-        () => fs.unlinkSync(pathImg),
+        () => fs.unlinkSync(finalPath),
         event.messageID
       );
-    } catch (error) {
+
+    } catch (err) {
+      console.error("HACK ERROR:", err);
       return api.sendMessage(
         "❌ Error generating hack image!",
         event.threadID,
         event.messageID
       );
     }
-  },
+  }
 };
