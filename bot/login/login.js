@@ -766,13 +766,6 @@ if (global.GoatBot.config.facebookAccounts?.length > 1) {
 
 const ownerList = global.GoatBot.config.devUsers || [];
 
-for (const uid of ownerList) {
-    await api.sendMessage(
-`🔁 ACCOUNT SWITCH ACTIVATED
-
-New Account: ${nextAccount.accountName}`,
-        uid
-    );
 }
 
     global.GoatBot.config.facebookAccount.email = nextAccount.email;
@@ -802,12 +795,37 @@ New Account: ${nextAccount.accountName}`,
                                 }
                         }
 
-                        global.GoatBot.fcaApi = api;
                         global.GoatBot.botID = api.getCurrentUserID();
-const ownerList = global.GoatBot.config.devUsers || [];
-const currentBotID = api.getCurrentUserID();
 
-// 🔔 BOT ID CHANGE ALERT
+global.GoatBot.fcaApi = api;
+global.GoatBot.botID = api.getCurrentUserID();
+
+require("./autoJoin.js")(api); // ✅ এখানে বসবে
+
+log.info("LOGIN FACEBOOK", getText('login', 'loginSuccess'));
+
+// 🔔 BOT RESTART NOTIFY
+setTimeout(async () => {
+    try {
+
+        for (const uid of ownerList) {
+            await api.sendMessage(
+`🤖 BOT ONLINE
+
+🆔 Bot ID: ${currentBotID}
+⚡ System Active`,
+                uid
+            );
+        }
+
+        console.log("✅ Restart notify sent.");
+
+    } catch (err) {
+        console.log("Notify error:", err.message);
+    }
+}, 5000);
+
+// 🔁 BOT ID CHANGE ALERT
 if (global.previousBotID && global.previousBotID !== currentBotID) {
 
     for (const uid of ownerList) {
@@ -820,53 +838,8 @@ New ID: ${currentBotID}`,
         );
     }
 }
-                        log.info("LOGIN FACEBOOK", getText('login', 'loginSuccess'));
 
-require("./autoJoin.js")(api);
-
-global.previousBotID = currentBotID;
-
-// ================= OWNER AUTO NOTIFY ================= //
-
-const ownerList = global.GoatBot.config.devUsers || [];
-const currentBotID = api.getCurrentUserID();
-
-setTimeout(async () => {
-    try {
-
-        for (const uid of ownerList) {
-
-            await api.sendMessage(
-`🤖 BOT RESTARTED SUCCESSFULLY
-
-🆔 Bot ID: ${currentBotID}
-⚡ System Online`,
-                uid
-            );
-        }
-
-        console.log("✅ Restart notify sent to owner.");
-
-    } catch (err) {
-        console.log("❌ Restart notify error:", err.message);
-    }
-}, 5000);
-const axios = require("axios");
-const { getStreamFromURL } = global.utils;
-
-setTimeout(async () => {
-    try {
-        api.sendMessage({
-            body: notifyText,
-            attachment: await getStreamFromURL("https://files.catbox.moe/625pbd.jpg")
-        }, myUID);
-
-        console.log("📩 Restart notification with image sent.");
-    } catch (err) {
-        console.log("❌ Failed to send restart notification:", err.message);
-    }
-}, 5000);
-                        let hasBanned = false;
+global.previousBotID = currentBotID;               let hasBanned = false;
                         global.botID = api.getCurrentUserID();
                         logColor("#f5ab00", createLine("BOT INFO"));
                         log.info("NODE VERSION", process.version);
