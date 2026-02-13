@@ -641,7 +641,61 @@ async function startBot(loginWithEmail) {
 
         log.info("LOGIN FACEBOOK", getText('login', 'currentlyLogged'));
 
-        let appState = await getAppStateToLogin(loginWithEmail);
+        let appState;
+
+const accounts = global.GoatBot.config.facebookAccounts || [];
+
+if (accounts.length > 0) {
+
+    if (global.currentAccountIndex >= accounts.length) {
+        global.currentAccountIndex = 0;
+    }
+
+    const account = accounts[global.currentAccountIndex];
+    const accountsDir = path.join(process.cwd(), "accounts");
+
+    if (!fs.existsSync(accountsDir)) {
+        fs.mkdirSync(accountsDir);
+    }
+
+    const filePath = path.join(accountsDir, `id${global.currentAccountIndex + 1}.txt`);
+
+    try {
+        // 🔹 Try cookie first
+        if (fs.existsSync(filePath)) {
+            console.log(`Trying cookie for ${account.accountName}`);
+            appState = JSON.parse(fs.readFileSync(filePath));
+        }
+        else {
+            throw new Error("Cookie not found");
+        }
+    } catch (err) {
+
+        console.log(`Cookie failed for ${account.accountName}, trying email/number login...`);
+
+        try {
+
+            appState = await getAppStateFromEmail(undefined, {
+                email: account.email || account.number,
+                password: account.password,
+                "2FASecret": account["2FASecret"] || ""
+            });
+
+            fs.writeFileSync(filePath, JSON.stringify(appState, null, 2));
+            console.log(`New cookie saved for ${account.accountName}`);
+
+        } catch (err2) {
+
+            console.log(`Login failed for ${account.accountName}`);
+
+            global.currentAccountIndex++;
+            return startBot(true);
+        }
+    }
+
+} else {
+    appState = await getAppStateToLogin(loginWithEmail);
+}
         changeFbStateByCode = true;
         appState = filterKeysAppState(appState);
         writeFileSync(dirAccount, JSON.stringify(appState, null, 2));
