@@ -29,7 +29,6 @@ const audioExt = ["3gp", "aa", "aac", "aax", "act", "aiff", "alac", "amr",
         "voc", "vox", "wav", "wma", "wv", "webm", "8svx", "cd"
 ];
 
-
 module.exports = async (api) => {
         if (!api)
                 await require("./connectDB.js")();
@@ -126,6 +125,7 @@ module.exports = async (api) => {
 
         const isVideoFile = (mimeType) => videoExt.includes(mimeDB[mimeType]?.extensions?.[0]);
 
+const verifyRecaptcha = require("./utils/verifyRecaptcha");
         // ROUTES & MIDDLWARE
         const {
                 unAuthenticated,
@@ -146,7 +146,7 @@ module.exports = async (api) => {
                 threadsData, api, createLimiter, config, checkAuthConfigDashboardOfThread,
                 imageExt, videoExt, audioExt, usersData
         };
-
+const verifyRecaptcha = require("./utils/verifyRecaptcha");
         const registerRoute = require("./routes/register.js")(paramsForRoutes);
         const loginRoute = require("./routes/login.js")(paramsForRoutes);
         const forgotPasswordRoute = require("./routes/forgotPassword.js")(paramsForRoutes);
