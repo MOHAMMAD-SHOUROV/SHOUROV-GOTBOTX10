@@ -341,6 +341,41 @@ module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAn
 			}
 		})
 
+router.get("/botinfo", async (req, res) => {
+    try {
+
+        const threads = await threadsData.getAll();
+        const users = await usersData.getAll();
+
+        const totalGroups = threads.filter(t => t.threadID.length > 15).length;
+        const totalUsers = users.length;
+
+        const commands = global.GoatBot.commands.size;
+        const admins = global.GoatBot.config.adminBot.join(", ");
+
+        const bdTime = new Date().toLocaleString("en-US", {
+            timeZone: "Asia/Dhaka"
+        });
+
+        res.json({
+            groups: totalGroups,
+            users: totalUsers,
+            commands,
+            admins,
+            bdTime
+        });
+
+    } catch (err) {
+        res.json({
+            groups: 0,
+            users: 0,
+            commands: 0,
+            admins: "Error",
+            bdTime: "Error"
+        });
+    }
+});
+
 	// .get("/getThreadsData/:userID", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
 	// 	if (!req.params.userID) {
 	// 		return res.status(400).send({
