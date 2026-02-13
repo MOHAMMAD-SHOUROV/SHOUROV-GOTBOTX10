@@ -52,6 +52,12 @@
 </li>
 
 <li class="nav-item">
+  <a class="nav-link" href="/command.html">
+    🧩 Command Control
+  </a>
+</li>
+
+<li class="nav-item">
   <a class="nav-link" href="/cookies">
     <i class="fas fa-cookie-bite"></i>
     <span>Cookie Manager</span>
