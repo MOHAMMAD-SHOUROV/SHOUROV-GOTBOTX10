@@ -70,6 +70,8 @@ global.GoatBot = {
         botID: null // store bot id
 };
 
+global.currentAccountIndex = 0;
+
 global.db = {
         // all data
         allThreadData: [],
