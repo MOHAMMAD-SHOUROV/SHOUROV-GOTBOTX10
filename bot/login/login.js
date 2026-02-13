@@ -753,8 +753,7 @@ if (accounts.length > 0) {
 
 if (global.GoatBot.config.facebookAccounts?.length > 1) {
 
-    global.currentAccountIndex = 
-        (global.currentAccountIndex || 0) + 1;
+    global.currentAccountIndex++;
 
     if (global.currentAccountIndex >= global.GoatBot.config.facebookAccounts.length) {
         global.currentAccountIndex = 0;
@@ -762,11 +761,16 @@ if (global.GoatBot.config.facebookAccounts?.length > 1) {
 
     const nextAccount = global.GoatBot.config.facebookAccounts[global.currentAccountIndex];
 
-    log.warn("AUTO SWITCH", `Switching to ${nextAccount.accountName}`);
+    const ownerList = global.GoatBot.config.devUsers || [];
 
-const ownerList = global.GoatBot.config.devUsers || [];
+    for (const uid of ownerList) {
+        await api.sendMessage(
+`🔁 ACCOUNT SWITCH ACTIVATED
 
-}
+New Account: ${nextAccount.accountName}`,
+            uid
+        );
+    }
 
     global.GoatBot.config.facebookAccount.email = nextAccount.email;
     global.GoatBot.config.facebookAccount.password = nextAccount.password;
@@ -775,11 +779,8 @@ const ownerList = global.GoatBot.config.devUsers || [];
     writeFileSync(global.client.dirConfig, JSON.stringify(global.GoatBot.config, null, 2));
 
     return startBot(true);
-}
-                                if (facebookAccount.email && facebookAccount.password) {
-                                        return startBot(true);
-                                }
-                                // —————————— CHECK DASHBOARD —————————— //
+}   
+           // —————————— CHECK DASHBOARD —————————— //
                                 if (global.GoatBot.config.dashBoard?.enable == true) {
                                         try {
                                                 await require("../../dashboard/app.js")(null);
@@ -795,39 +796,18 @@ const ownerList = global.GoatBot.config.devUsers || [];
                                 }
                         }
 
-                        global.GoatBot.botID = api.getCurrentUserID();
-
-global.GoatBot.fcaApi = api;
+                        global.GoatBot.fcaApi = api;
 global.GoatBot.botID = api.getCurrentUserID();
 
-require("./autoJoin.js")(api); // ✅ এখানে বসবে
+require("./autoJoin.js")(api);
 
-log.info("LOGIN FACEBOOK", getText('login', 'loginSuccess'));
+// ================= OWNER NOTIFY SYSTEM ================= //
 
-// 🔔 BOT RESTART NOTIFY
-setTimeout(async () => {
-    try {
+const ownerList = global.GoatBot.config.devUsers || [];
+const currentBotID = api.getCurrentUserID();
 
-        for (const uid of ownerList) {
-            await api.sendMessage(
-`🤖 BOT ONLINE
-
-🆔 Bot ID: ${currentBotID}
-⚡ System Active`,
-                uid
-            );
-        }
-
-        console.log("✅ Restart notify sent.");
-
-    } catch (err) {
-        console.log("Notify error:", err.message);
-    }
-}, 5000);
-
-// 🔁 BOT ID CHANGE ALERT
+// 🔔 BOT ID CHANGE ALERT
 if (global.previousBotID && global.previousBotID !== currentBotID) {
-
     for (const uid of ownerList) {
         await api.sendMessage(
 `⚠️ BOT ID CHANGED!
@@ -838,6 +818,26 @@ New ID: ${currentBotID}`,
         );
     }
 }
+
+global.previousBotID = currentBotID;
+
+// 🔄 BOT RESTART ALERT
+setTimeout(async () => {
+    try {
+        for (const uid of ownerList) {
+            await api.sendMessage(
+`🤖 BOT ONLINE
+
+🆔 Bot ID: ${currentBotID}
+⚡ System Active`,
+                uid
+            );
+        }
+        console.log("✅ Restart notify sent.");
+    } catch (err) {
+        console.log("Notify error:", err.message);
+    }
+}, 5000);
 
 global.previousBotID = currentBotID;               let hasBanned = false;
                         global.botID = api.getCurrentUserID();
