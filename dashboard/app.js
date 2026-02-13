@@ -283,6 +283,24 @@ app.post("/switchAccount", isAuthenticated, isAdmin, (req, res) => {
     }
 });
 
+
+app.post("/uploadcookie", isAuthenticated, isAdmin, (req, res) => {
+
+    const index = parseInt(req.body.index);
+    const cookie = req.body.cookie;
+
+    if (!cookie) return res.send("No cookie");
+
+    const accountsDir = path.join(process.cwd(), "accounts");
+    if (!fs.existsSync(accountsDir)) fs.mkdirSync(accountsDir);
+
+    const filePath = path.join(accountsDir, `id${index + 1}.txt`);
+
+    fs.writeFileSync(filePath, cookie);
+
+    res.send("Cookie saved successfully!");
+});
+
         app.get("*", (req, res) => {
                 res.status(404).render("404");
         });
