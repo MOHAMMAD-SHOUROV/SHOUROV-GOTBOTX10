@@ -346,45 +346,6 @@ if (!global.GoatBot.config.devUsers.includes(req.user?.facebookUserID)) {
 			}
 		})
 
-router.post("/control", async (req, res) => {
-    try {
-
-        const { action } = req.body;
-
-        if (!action)
-            return res.status(400).json({ error: "No action provided" });
-
-        let command;
-
-        switch (action) {
-            case "start":
-                command = "pm2 start ecosystem.config.js";
-                break;
-
-            case "stop":
-                command = "pm2 stop all";
-                break;
-
-            case "restart":
-                command = "pm2 restart all";
-                break;
-
-            default:
-                return res.status(400).json({ error: "Invalid action" });
-        }
-
-        exec(command, (error, stdout, stderr) => {
-            if (error) {
-                return res.status(500).json({ error: error.message });
-            }
-
-            res.json({ success: true, output: stdout });
-        });
-
-    } catch (err) {
-        res.status(500).json({ error: "Control failed" });
-    }
-});
 
 router.post("/toggle-command", (req, res) => {
     try {
