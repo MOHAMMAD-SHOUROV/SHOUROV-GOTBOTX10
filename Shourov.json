@@ -53,7 +53,9 @@
   "prefix": ";",
   "adminOnly": {
     "enable": false,
-    "ignoreCommand": []
+    "ignoreCommand": [],
+"videoDownloader": true,
+"autoCaption": true
   },
   "adminBot": [
     "61588161951831"
