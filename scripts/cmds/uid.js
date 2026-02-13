@@ -1,12 +1,10 @@
-const { findUid } = global.utils;
-
 const regExCheckURL = /^(http|https):\/\/[^ "]+$/;
 
 module.exports = {
   config: {
     name: "uid",
-    version: "2.0.0",
-    author: "Alihsan Shourov",
+    version: "4.0.0",
+    author: "Alihsan Shourov (Fixed)",
     countDown: 5,
     role: 0,
     description: "View Facebook UID",
@@ -14,50 +12,44 @@ module.exports = {
     guide: "{p}uid | {p}uid @mention | {p}uid profile_link | reply + uid"
   },
 
-  onStart: async function ({ message, event, args, resolveTargetID }) {
+  onStart: async function ({ api, message, event, args }) {
     try {
       const { mentions, messageReply, senderID } = event;
 
-      // ===== REPLY OR MENTION =====
-      const targetID = resolveTargetID(args);
-
-      if (targetID) {
-        return message.reply(`🆔 UID: ${targetID}`);
+      // 🔹 Reply Support
+      if (messageReply?.senderID) {
+        return message.reply(`🆔 UID: ${messageReply.senderID}`);
       }
 
-      // ===== NO ARG = OWN UID =====
+      // 🔹 Mention Support
+      if (Object.keys(mentions || {}).length > 0) {
+        let msg = "";
+        for (const id in mentions) {
+          msg += `👤 ${mentions[id].replace("@", "")}\n🆔 ${id}\n\n`;
+        }
+        return message.reply(msg.trim());
+      }
+
+      // 🔹 Self UID
       if (!args[0]) {
         return message.reply(`🆔 Your UID: ${senderID}`);
       }
 
-      // ===== PROFILE LINK =====
-      if (args[0].match(regExCheckURL)) {
-        let result = "";
+      // 🔹 Profile Link Support (NEW SYSTEM)
+      if (regExCheckURL.test(args[0])) {
 
-        for (const link of args) {
-          try {
-            const uid = await findUid(link);
-            result += `🔗 ${link}\n🆔 ${uid}\n\n`;
-          } catch (e) {
-            result += `❌ ${link}\nError: ${e.message}\n\n`;
-          }
+        try {
+          const data = await api.getUserID(args[0]);
+          if (!data || !data[0])
+            return message.reply("❌ Unable to fetch UID from link.");
+
+          return message.reply(`🔗 ${args[0]}\n🆔 ${data[0].userID}`);
+        } catch {
+          return message.reply("❌ Invalid profile link.");
         }
-
-        return message.reply(result);
       }
 
-      // ===== MULTIPLE MENTION =====
-      let msg = "";
-
-      for (const id in mentions) {
-        msg += `👤 ${mentions[id].replace("@", "")}\n🆔 ${id}\n\n`;
-      }
-
-      if (!msg) {
-        return message.reply("❌ Invalid input. Use mention, reply or profile link.");
-      }
-
-      return message.reply(msg);
+      return message.reply("❌ Invalid input.");
 
     } catch (err) {
       console.error("UID ERROR:", err);
