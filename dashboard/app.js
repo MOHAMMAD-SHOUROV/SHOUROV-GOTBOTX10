@@ -219,9 +219,8 @@ module.exports = async (api) => {
                 });
 
                 res.on("finish", () => {
-                        process.exit(2);
-                });
-        });
+    console.log("Restart triggered safely");
+});
         app.get("/uptime", global.responseUptimeCurrent);
 
         // Health check endpoint for Render/Railway
@@ -331,9 +330,7 @@ server.listen(PORT, () => {
                         ? `${process.env.PROJECT_DOMAIN}.glitch.me`
                         : `localhost:${PORT}`}`;
         dashBoardUrl.includes("localhost") && (dashBoardUrl = dashBoardUrl.replace("https", "http"));
-        server.listen(PORT, () => {
-    utils.log.info("DASHBOARD", `Dashboard running on port ${PORT}`);
-});
+        
         if (config.serverUptime.socket.enable == true)
                 require("../bot/login/socketIO.js")(server);
 };
