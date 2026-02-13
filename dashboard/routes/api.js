@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const mimeDB = require("mime-db");
 const router = express.Router();
+const { exec } = require("child_process");
 
 module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAndInThread, threadsData, drive, checkAuthConfigDashboardOfThread, usersData, createLimiter, middlewareCheckAuthConfigDashboardOfThread, isVideoFile }) {
 	const apiLimiter = createLimiter(1000 * 60 * 5, 10);
