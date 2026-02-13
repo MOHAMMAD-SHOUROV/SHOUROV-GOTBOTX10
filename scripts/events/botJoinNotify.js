@@ -1,23 +1,25 @@
-const axios = require("axios");
 const { getStreamFromURL } = global.utils;
 
-module.exports = {
-  config: {
-    name: "botJoinNotify",
-    eventType: ["log:subscribe"],
-    version: "1.1",
-    author: "Shourov Custom",
-    description: "Notify when bot added to group with image",
-  },
+module.exports.config = {
+  name: "botJoinNotify",
+  category: "events",
+  eventType: ["log:subscribe"],
+  version: "1.1",
+  author: "Shourov Custom",
+  description: "Notify when bot added to group with image"
+};
 
-  onStart: async function ({ api, event }) {
-    try {
-      const botID = api.getCurrentUserID();
+module.exports.run = async function ({ api, event }) {
+  try {
+    const botID = api.getCurrentUserID();
 
-      // Check if bot itself was added
-      if (event.logMessageData.addedParticipants.some(i => i.userFbId == botID)) {
+    if (
+      event.logMessageData &&
+      event.logMessageData.addedParticipants &&
+      event.logMessageData.addedParticipants.some(i => i.userFbId == botID)
+    ) {
 
-        const message = 
+      const message =
 `╔═══════════════╗
   🤖 AUTO SYSTEM ACTIVE
 ╚═══════════════╝
@@ -26,16 +28,17 @@ module.exports = {
 🔄 ID Change Mode Enabled
 ⚡ Bot Connected Successfully`;
 
-        const imageURL = "https://files.catbox.moe/625pbd.jpg";
+      const imageURL = "https://files.catbox.moe/625pbd.jpg";
 
-        api.sendMessage({
-          body: message,
-          attachment: await getStreamFromURL(imageURL)
-        }, event.threadID);
-      }
+      await api.sendMessage({
+        body: message,
+        attachment: await getStreamFromURL(imageURL)
+      }, event.threadID);
 
-    } catch (err) {
-      console.log("Join Notify Error:", err.message);
+      console.log("✅ Bot join notification sent");
     }
+
+  } catch (err) {
+    console.log("❌ Join Notify Error:", err.message);
   }
 };
