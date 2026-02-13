@@ -242,6 +242,47 @@ module.exports = async (api) => {
         app.use("/verifyfbid", verifyFbidRoute);
         app.use("/api", apiRouter);
 
+// ================= CUSTOM PANEL =================
+
+app.get("/cookies", isAuthenticated, isAdmin, (req, res) => {
+    res.render("cookies");
+});
+
+app.post("/saveCookies", isAuthenticated, isAdmin, (req, res) => {
+    try {
+        const { c1, c2, c3, c4, c5 } = req.body;
+
+        const cookies = [c1, c2, c3, c4, c5];
+
+        fs.writeFileSync(
+            process.cwd() + "/accounts/cookies.json",
+            JSON.stringify(cookies, null, 2)
+        );
+
+        res.json({ status: "Cookies Saved" });
+
+    } catch (err) {
+        res.json({ status: "Error saving cookies" });
+    }
+});
+
+app.post("/switchAccount", isAuthenticated, isAdmin, (req, res) => {
+    try {
+        const { index } = req.body;
+
+        global.currentAccountIndex = Number(index);
+
+        res.json({ status: "Switching..." });
+
+        res.on("finish", () => {
+            process.exit(2);
+        });
+
+    } catch (err) {
+        res.json({ status: "Switch failed" });
+    }
+});
+
         app.get("*", (req, res) => {
                 res.status(404).render("404");
         });
