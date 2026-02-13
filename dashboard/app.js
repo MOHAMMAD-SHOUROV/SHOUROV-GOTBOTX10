@@ -125,7 +125,6 @@ module.exports = async (api) => {
 
         const isVideoFile = (mimeType) => videoExt.includes(mimeDB[mimeType]?.extensions?.[0]);
 
-const verifyRecaptcha = require("./utils/verifyRecaptcha");
         // ROUTES & MIDDLWARE
         const paramsForRoutes = {
     unAuthenticated, 
@@ -331,7 +330,6 @@ app.post("/uploadcookie", isAuthenticated, isAdmin, (req, res) => {
                         return res.status(500).send(getText("app", "serverError"));
         });
 
-        const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
     const PORT = process.env.PORT || 3001;
