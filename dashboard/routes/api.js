@@ -417,6 +417,32 @@ router.post("/toggle-command", (req, res) => {
 });
 
 
+router.get("/settings", (req, res) => {
+    if (!req.user)
+        return res.status(401).json({ error: "Login required" });
+
+    res.json(global.GoatBot.config);
+});
+
+
+router.post("/settings", (req, res) => {
+    if (!req.user)
+        return res.status(401).json({ error: "Login required" });
+
+    if (!global.GoatBot.config.adminBot.includes(req.user.facebookUserID))
+        return res.status(403).json({ error: "Admin only" });
+
+    const { key, value } = req.body;
+
+    global.GoatBot.config[key] = value;
+
+    const configPath = path.join(process.cwd(), "Shourov.json");
+
+    fs.writeFileSync(configPath, JSON.stringify(global.GoatBot.config, null, 2));
+
+    res.json({ success: true });
+});
+
 router.get("/logs", async (req, res) => {
     try {
 
