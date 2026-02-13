@@ -764,6 +764,17 @@ if (global.GoatBot.config.facebookAccounts?.length > 1) {
 
     log.warn("AUTO SWITCH", `Switching to ${nextAccount.accountName}`);
 
+const ownerList = global.GoatBot.config.devUsers || [];
+
+for (const uid of ownerList) {
+    await api.sendMessage(
+`🔁 ACCOUNT SWITCH ACTIVATED
+
+New Account: ${nextAccount.accountName}`,
+        uid
+    );
+}
+
     global.GoatBot.config.facebookAccount.email = nextAccount.email;
     global.GoatBot.config.facebookAccount.password = nextAccount.password;
     global.GoatBot.config.facebookAccount["2FASecret"] = nextAccount["2FASecret"] || "";
