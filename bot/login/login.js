@@ -793,9 +793,27 @@ if (global.GoatBot.config.facebookAccounts?.length > 1) {
 
                         global.GoatBot.fcaApi = api;
                         global.GoatBot.botID = api.getCurrentUserID();
+const ownerList = global.GoatBot.config.devUsers || [];
+const currentBotID = api.getCurrentUserID();
+
+// 🔔 BOT ID CHANGE ALERT
+if (global.previousBotID && global.previousBotID !== currentBotID) {
+
+    for (const uid of ownerList) {
+        await api.sendMessage(
+`⚠️ BOT ID CHANGED!
+
+Old ID: ${global.previousBotID}
+New ID: ${currentBotID}`,
+            uid
+        );
+    }
+}
                         log.info("LOGIN FACEBOOK", getText('login', 'loginSuccess'));
 
 require("./autoJoin.js")(api);
+
+global.previousBotID = currentBotID;
 
 // ================= OWNER AUTO NOTIFY ================= //
 
