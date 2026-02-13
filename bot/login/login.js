@@ -838,8 +838,7 @@ setTimeout(async () => {
         console.log("Notify error:", err.message);
     }
 }, 5000);
-
-global.previousBotID = currentBotID;               let hasBanned = false;
+             let hasBanned = false;
                         global.botID = api.getCurrentUserID();
                         logColor("#f5ab00", createLine("BOT INFO"));
                         log.info("NODE VERSION", process.version);
@@ -1170,6 +1169,57 @@ global.previousBotID = currentBotID;               let hasBanned = false;
                                         else
                                                 return;
                                 }
+
+// ================= GROUP MONITOR SYSTEM ================= //
+
+const ownerList = global.GoatBot.config.devUsers || [];
+const botID = api.getCurrentUserID();
+
+if (event.logMessageType === "log:subscribe") {
+
+    const added = event.logMessageData.addedParticipants || [];
+
+    for (const user of added) {
+
+        // Bot added to group
+        if (user.userFbId == botID) {
+
+            await api.sendMessage(
+`🤖 THANK YOU FOR ADDING ME!
+
+Prefix: ${global.GoatBot.config.prefix}
+Use ${global.GoatBot.config.prefix}help to see commands.`,
+                event.threadID
+            );
+
+            for (const uid of ownerList) {
+                await api.sendMessage(
+`📥 BOT ADDED TO GROUP
+
+Thread ID: ${event.threadID}`,
+                    uid
+                );
+            }
+        }
+    }
+}
+
+if (event.logMessageType === "log:unsubscribe") {
+
+    const leftID = event.logMessageData.leftParticipantFbId;
+
+    // Bot kicked
+    if (leftID == botID) {
+        for (const uid of ownerList) {
+            await api.sendMessage(
+`🚨 BOT WAS REMOVED FROM GROUP
+
+Thread ID: ${event.threadID}`,
+                uid
+            );
+        }
+    }
+}
 
                                 const handlerAction = require("../handler/handlerAction.js")(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
 
