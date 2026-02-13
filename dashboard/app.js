@@ -127,25 +127,35 @@ module.exports = async (api) => {
 
 const verifyRecaptcha = require("./utils/verifyRecaptcha");
         // ROUTES & MIDDLWARE
-        const {
-                unAuthenticated,
-                isWaitVerifyAccount,
-                isAuthenticated,
-                isAdmin,
-                isVeryfiUserIDFacebook,
-                checkHasAndInThread,
-                middlewareCheckAuthConfigDashboardOfThread
-        } = middleWare;
-
         const paramsForRoutes = {
-                unAuthenticated, isWaitVerifyAccount, isAdmin, isAuthenticated,
-                isVeryfiUserIDFacebook, checkHasAndInThread, middlewareCheckAuthConfigDashboardOfThread,
+    unAuthenticated, 
+    isWaitVerifyAccount, 
+    isAdmin, 
+    isAuthenticated,
+    isVeryfiUserIDFacebook, 
+    checkHasAndInThread, 
+    middlewareCheckAuthConfigDashboardOfThread,
 
-                generateEmailVerificationCode, dashBoardData, expireVerifyCode, Passport, isVideoFile,
+    generateEmailVerificationCode, 
+    dashBoardData, 
+    expireVerifyCode, 
+    Passport, 
+    isVideoFile,
 
-                threadsData, api, createLimiter, config, checkAuthConfigDashboardOfThread,
-                imageExt, videoExt, audioExt, usersData
-        };
+    threadsData, 
+    api, 
+    createLimiter, 
+    config, 
+    checkAuthConfigDashboardOfThread,
+    imageExt, 
+    videoExt, 
+    audioExt, 
+    usersData,
+
+    // 🔥 এটা অবশ্যই থাকবে
+    isVerifyRecaptcha: verifyRecaptcha
+};
+                
 const verifyRecaptcha = require("./utils/verifyRecaptcha");
         const registerRoute = require("./routes/register.js")(paramsForRoutes);
         const loginRoute = require("./routes/login.js")(paramsForRoutes);
@@ -200,26 +210,30 @@ const verifyRecaptcha = require("./utils/verifyRecaptcha");
         });
 
         app.post("/changefbstate", isAuthenticated, isVeryfiUserIDFacebook, (req, res) => {
-                if (!global.GoatBot.config.adminBot.includes(req.user.facebookUserID))
-                        return res.send({
-                                status: "error",
-                                message: getText("app", "notPermissionChangeFbstate")
-                        });
-                const { fbstate } = req.body;
-                if (!fbstate)
-                        return res.send({
-                                status: "error",
-                                message: getText("app", "notFoundFbstate")
-                        });
+    if (!global.GoatBot.config.adminBot.includes(req.user.facebookUserID))
+        return res.send({
+            status: "error",
+            message: getText("app", "notPermissionChangeFbstate")
+        });
 
-                fs.writeFileSync(process.cwd() + "/account.txt", fbstate);
-                res.send({
-                        status: "success",
-                        message: getText("app", "changedFbstateSuccess")
-                });
+    const { fbstate } = req.body;
+    if (!fbstate)
+        return res.send({
+            status: "error",
+            message: getText("app", "notFoundFbstate")
+        });
 
-                res.on("finish", () => {
-    console.log("Restart triggered safely");
+    fs.writeFileSync(process.cwd() + "/account.txt", fbstate);
+
+    res.send({
+        status: "success",
+        message: getText("app", "changedFbstateSuccess")
+    });
+
+    res.on("finish", () => {
+        console.log("Restart triggered safely");
+        process.exit(0);
+    });
 });
         app.get("/uptime", global.responseUptimeCurrent);
 
@@ -320,20 +334,16 @@ app.post("/uploadcookie", isAuthenticated, isAdmin, (req, res) => {
         const PORT = process.env.PORT || 3001;
 
 server.listen(PORT, () => {
+    const PORT = process.env.PORT || 3001;
+
+server.listen(PORT, () => {
     console.log("=================================");
     console.log(`🚀 Dashboard running on port ${PORT}`);
     console.log("=================================");
 });
-        let dashBoardUrl = `https://${process.env.REPL_OWNER
-                ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-                : process.env.API_SERVER_EXTERNAL == "https://api.glitch.com"
-                        ? `${process.env.PROJECT_DOMAIN}.glitch.me`
-                        : `localhost:${PORT}`}`;
-        dashBoardUrl.includes("localhost") && (dashBoardUrl = dashBoardUrl.replace("https", "http"));
-        
-        if (config.serverUptime.socket.enable == true)
-                require("../bot/login/socketIO.js")(server);
-};
+
+if (config.serverUptime.socket.enable == true)
+    require("../bot/login/socketIO.js")(server);
 
 function randomStringApikey(max) {
         let text = "";
