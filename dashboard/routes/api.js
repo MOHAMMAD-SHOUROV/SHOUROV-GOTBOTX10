@@ -459,6 +459,43 @@ router.get("/commands", (req, res) => {
     }
 });
 
+router.post("/command-toggle", async (req, res) => {
+    try {
+
+        if (!req.user)
+            return res.status(401).json({ error: "Login required" });
+
+        const adminList = global.GoatBot.config.devUsers || [];
+
+        if (!adminList.includes(req.user.facebookUserID))
+            return res.status(403).json({ error: "Only admin allowed" });
+
+        const { command, enable } = req.body;
+
+        if (!command)
+            return res.status(400).json({ error: "Command missing" });
+
+        const configPath = path.join(process.cwd(), "configCommands.json");
+        const configData = fs.readJsonSync(configPath);
+
+        if (!configData.commandBanned)
+            configData.commandBanned = {};
+
+        if (enable) {
+            delete configData.commandBanned[command];
+        } else {
+            configData.commandBanned[command] = true;
+        }
+
+        fs.writeJsonSync(configPath, configData, { spaces: 2 });
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ error: "Toggle failed" });
+    }
+});
+
 router.get("/botinfo", async (req, res) => {
     try {
 
