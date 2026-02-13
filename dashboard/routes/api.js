@@ -5,6 +5,7 @@ const mimeDB = require("mime-db");
 const router = express.Router();
 const { exec } = require("child_process");
 const fs = require("fs-extra");
+const fs = require("fs");
 
 module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAndInThread, threadsData, drive, checkAuthConfigDashboardOfThread, usersData, createLimiter, middlewareCheckAuthConfigDashboardOfThread, isVideoFile }) {
 	const apiLimiter = createLimiter(1000 * 60 * 5, 10);
@@ -412,6 +413,27 @@ router.post("/toggle-command", (req, res) => {
 
     } catch (err) {
         res.status(500).json({ error: "Toggle failed" });
+    }
+});
+
+
+router.get("/logs", async (req, res) => {
+    try {
+
+        if (!req.user)
+            return res.status(401).send("Login required");
+
+        const logPath = path.join(process.cwd(), "logs.txt");
+
+        if (!fs.existsSync(logPath))
+            return res.send("No logs found.");
+
+        const data = fs.readFileSync(logPath, "utf8");
+
+        res.send(data);
+
+    } catch (err) {
+        res.status(500).send("Failed to load logs");
     }
 });
 
