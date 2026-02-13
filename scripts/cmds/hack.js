@@ -1,111 +1,120 @@
-const { loadImage, createCanvas } = require("canvas");
 const fs = require("fs-extra");
-const axios = require("axios");
+const { createCanvas, loadImage } = require("canvas");
 const path = require("path");
 
 module.exports = {
   config: {
     name: "hack",
-    version: "2.0.0",
-    author: "Alihsan Shourov (Fixed)",
+    version: "5.0.0",
+    author: "Alihsan Shourov (UID Edition)",
     countDown: 5,
     role: 0,
+    description: "Fake hack banner with UID support",
     category: "fun",
-    guide: "{pn} @mention | reply | uid"
+    guide: "{p}hack @mention | reply | uid"
   },
 
-  onStart: async function ({ api, event, args }) {
+  onStart: async function ({ message, event, args, usersData }) {
     try {
-      const { senderID, messageReply, mentions } = event;
+      const senderID = event.senderID;
 
-      // ===== GET TARGET ID =====
+      // ===== TARGET DETECT =====
       let targetID;
 
+      // UID support
       if (args[0] && !isNaN(args[0])) {
-        targetID = args[0]; // UID support
-      } else if (messageReply?.senderID) {
-        targetID = messageReply.senderID; // Reply support
-      } else if (mentions && Object.keys(mentions).length > 0) {
-        targetID = Object.keys(mentions)[0]; // Mention support
-      } else {
-        targetID = senderID; // Default self
+        targetID = args[0];
+      }
+      // Reply support
+      else if (event.messageReply?.senderID) {
+        targetID = event.messageReply.senderID;
+      }
+      // Mention support
+      else if (Object.keys(event.mentions || {}).length > 0) {
+        targetID = Object.keys(event.mentions)[0];
+      }
+      // Default self
+      else {
+        targetID = senderID;
       }
 
-      // ===== GET USER NAME =====
-      const userInfo = await api.getUserInfo(targetID);
-      const userName = userInfo[targetID]?.name || "Unknown User";
+      // ===== USER INFO =====
+      const userName = await usersData.getName(targetID);
+      const avatarURL = await usersData.getAvatarUrl(targetID);
 
-      // ===== PATH SETUP =====
-      const tmpDir = path.join(__dirname, "tmp");
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir);
-
-      const bgPath = path.join(tmpDir, `hack_bg_${Date.now()}.png`);
-      const avatarPath = path.join(tmpDir, `hack_avt_${Date.now()}.png`);
-
-      // ===== DOWNLOAD AVATAR =====
-      const avatar = await jimp.read(
-  `https://graph.facebook.com/${id}/picture?width=720&height=720&access_token=6628568379|c1e620fa708a1d5696fb991c1bde5662`
-);
-          { responseType: "arraybuffer" }
-        )
-      ).data;
-
-      fs.writeFileSync(avatarPath, Buffer.from(avatarBuffer));
-
-      // ===== DOWNLOAD BACKGROUND =====
-      const bgBuffer = (
-        await axios.get(
-          "https://files.catbox.moe/ibmk54.jpg",
-          { responseType: "arraybuffer" }
-        )
-      ).data;
-
-      fs.writeFileSync(bgPath, Buffer.from(bgBuffer));
-
-      // ===== CANVAS WORK =====
-      const background = await loadImage(bgPath);
-      const avatar = await loadImage(avatarPath);
+      // ===== LOAD BACKGROUND =====
+      const background = await loadImage("https://files.catbox.moe/ibmk54.jpg");
 
       const canvas = createCanvas(background.width, background.height);
       const ctx = canvas.getContext("2d");
 
-      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+      ctx.drawImage(background, 0, 0);
 
-      // Name text
-      ctx.font = "bold 28px Arial";
+      const avatar = await loadImage(avatarURL);
+
+      // ===== ROUND AVATAR =====
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 140;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY - 60, radius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(
+        avatar,
+        centerX - radius,
+        centerY - 60 - radius,
+        radius * 2,
+        radius * 2
+      );
+      ctx.restore();
+
+      // Border
+      ctx.beginPath();
+      ctx.arc(centerX, centerY - 60, radius, 0, Math.PI * 2);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = "#00ff00";
+      ctx.stroke();
+
+      // ===== TEXT =====
+      ctx.textAlign = "center";
+
+      ctx.font = "bold 40px Arial";
       ctx.fillStyle = "#00ff00";
-      ctx.fillText(userName, 150, 450);
+      ctx.fillText("SYSTEM BREACHED", centerX, canvas.height - 180);
 
-      // Avatar
-      ctx.drawImage(avatar, 60, 400, 80, 80);
+      ctx.font = "bold 28px Arial";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(userName, centerX, canvas.height - 130);
 
-      const finalPath = path.join(tmpDir, `hack_final_${Date.now()}.png`);
-      fs.writeFileSync(finalPath, canvas.toBuffer());
+      ctx.font = "bold 22px Arial";
+      ctx.fillStyle = "#ff0000";
+      ctx.fillText(`UID: ${targetID}`, centerX, canvas.height - 90);
 
-      // ===== CLEAN TEMP FILES =====
-      fs.removeSync(bgPath);
-      fs.removeSync(avatarPath);
+      // ===== SAVE FILE =====
+      const tmpDir = path.join(__dirname, "tmp");
+      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
-      return api.sendMessage(
+      const filePath = path.join(tmpDir, `hack_${Date.now()}.png`);
+      fs.writeFileSync(filePath, canvas.toBuffer("image/png"));
+
+      return message.reply(
         {
           body:
-            "💻 SYSTEM BREACHED!\n" +
-            `🔓 ${userName} has been hacked successfully!\n\n` +
+            "💻 SYSTEM BREACHED!\n\n" +
+            `🔓 ${userName} hacked successfully!\n` +
+            `🆔 UID: ${targetID}\n\n` +
             "⚠️ Just kidding 😎",
-          attachment: fs.createReadStream(finalPath),
+          attachment: fs.createReadStream(filePath)
         },
-        event.threadID,
-        () => fs.unlinkSync(finalPath),
-        event.messageID
+        () => fs.unlinkSync(filePath)
       );
 
     } catch (err) {
       console.error("HACK ERROR:", err);
-      return api.sendMessage(
-        "❌ Error generating hack image!",
-        event.threadID,
-        event.messageID
-      );
+      return message.reply("❌ Hack command failed.");
     }
   }
 };
