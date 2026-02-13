@@ -341,6 +341,35 @@ module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAn
 			}
 		})
 
+router.post("/toggle-command", (req, res) => {
+    try {
+
+        const { name, enabled } = req.body;
+
+        if (!name)
+            return res.status(400).json({ error: "Command name required" });
+
+        let banned = global.GoatBot.configCommands.commandBanned || [];
+
+        if (!enabled) {
+            if (!banned.includes(name))
+                banned.push(name);
+        } else {
+            banned = banned.filter(cmd => cmd !== name);
+        }
+
+        global.GoatBot.configCommands.commandBanned = banned;
+
+        const configPath = global.client.dirConfigCommands;
+        fs.writeFileSync(configPath, JSON.stringify(global.GoatBot.configCommands, null, 2));
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ error: "Toggle failed" });
+    }
+});
+
 router.get("/commands", (req, res) => {
     try {
 
