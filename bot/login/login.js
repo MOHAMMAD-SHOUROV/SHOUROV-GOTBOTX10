@@ -113,7 +113,7 @@ else {
         subTitleArray.push(subTitle);
 }
 const author = ("Created by NTKhang with ♡");
-const modified = ("Modified by NeoKEX");
+const modified = ("Modified by Alihsan Shourov");
 const srcUrl = ("Source code: https://github.com/ntkhang03/Goat-Bot-V2");
 const fakeRelease = ("ALL VERSIONS NOT RELEASED HERE ARE FAKE");
 for (const t of subTitleArray) {
@@ -696,6 +696,28 @@ async function startBot(loginWithEmail) {
                         if (error) {
                                 log.err("LOGIN FACEBOOK", getText('login', 'loginError'), error);
                                 global.statusAccountBot = 'can\'t login';
+
+if (global.GoatBot.config.facebookAccounts?.length > 1) {
+
+    global.currentAccountIndex = 
+        (global.currentAccountIndex || 0) + 1;
+
+    if (global.currentAccountIndex >= global.GoatBot.config.facebookAccounts.length) {
+        global.currentAccountIndex = 0;
+    }
+
+    const nextAccount = global.GoatBot.config.facebookAccounts[global.currentAccountIndex];
+
+    log.warn("AUTO SWITCH", `Switching to ${nextAccount.accountName}`);
+
+    global.GoatBot.config.facebookAccount.email = nextAccount.email;
+    global.GoatBot.config.facebookAccount.password = nextAccount.password;
+    global.GoatBot.config.facebookAccount["2FASecret"] = nextAccount["2FASecret"] || "";
+
+    writeFileSync(global.client.dirConfig, JSON.stringify(global.GoatBot.config, null, 2));
+
+    return startBot(true);
+}
                                 if (facebookAccount.email && facebookAccount.password) {
                                         return startBot(true);
                                 }
@@ -756,7 +778,7 @@ setTimeout(async () => {
                         log.info("BOT ID", `${global.botID} - ${await getName(global.botID)}`);
                         log.info("PREFIX", global.GoatBot.config.prefix);
                         log.info("LANGUAGE", global.GoatBot.config.language);
-                        log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "GOAT BOT");
+                        log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "SHOUROV BOT");
                         // ———————————————————— GBAN ————————————————————— //
                         let dataGban;
 
