@@ -46,9 +46,9 @@ module.exports = async (api) => {
   app.use(cookieParser());
 
   app.use(session({
-    secret: utils.randomString(32),
+    secret: process.env.SESSION_SECRET || "shourov_super_secret_key",
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
       secure: false,
       httpOnly: true,
@@ -86,7 +86,7 @@ module.exports = async (api) => {
   async function checkAuthConfigDashboardOfThread(threadData, userID) {
     if (!isNaN(threadData))
       threadData = await threadsData.get(threadData);
-    return threadData.adminIDs?.includes(userID) || false;
+    return threadData?.adminIDs?.includes(userID) || false;
   }
 
   const middleWare = require("./middleware/index.js")(checkAuthConfigDashboardOfThread);
@@ -159,18 +159,6 @@ module.exports = async (api) => {
     });
   });
 
-  // ================= COOKIE PANEL =================
-
-  app.get("/cookies", isAuthenticated, isAdmin, (req, res) => {
-    res.render("cookies");
-  });
-
-  app.post("/switchAccount", isAuthenticated, isAdmin, (req, res) => {
-    global.currentAccountIndex = Number(req.body.index);
-    res.json({ status: "Switching..." });
-    res.on("finish", () => process.exit(0));
-  });
-
   // ================= 404 =================
 
   app.get("*", (req, res) => {
@@ -187,7 +175,8 @@ module.exports = async (api) => {
     console.log("=================================");
   });
 
-  if (config.serverUptime.socket.enable == true) {
+  if (config?.serverUptime?.socket?.enable === true) {
     require("../bot/login/socketIO.js")(server);
   }
+
 };
