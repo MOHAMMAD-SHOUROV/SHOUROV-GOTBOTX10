@@ -44,31 +44,6 @@
           </a>
         </li>
 
-<li class="nav-item">
-  <a class="nav-link" href="/neon">
-    <i class="fas fa-bolt"></i>
-    <span>Neon Dashboard</span>
-  </a>
-</li>
-
-<li class="nav-item">
-  <a class="nav-link" href="/command.html">
-    🧩 Command Control
-  </a>
-</li>
-
-<li class="nav-item">
-  <a class="nav-link" href="/cookies">
-    <i class="fas fa-cookie-bite"></i>
-    <span>Cookie Manager</span>
-  </a>
-</li>
-
-<li class="nav-item">
-  <a class="nav-link" href="/control.html">
-    ⚙ Control
-  </a>
-</li>
         <li class="nav-item">
           <a href="/donate" class="nav-link px-2">
             <i class="fas fa-donate"></i>
