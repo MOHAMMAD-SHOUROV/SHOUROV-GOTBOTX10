@@ -25,7 +25,7 @@
 
 <script>
   document.getElementById('copy-right').innerHTML =
-    `© ${new Date().getFullYear()} SHOUROV-BOT. All Rights Reserved.`;
+    `© ${new Date().getFullYear()} SHOUROV-BOT.`;
 </script>
 
 </body>
