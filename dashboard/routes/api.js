@@ -3,8 +3,6 @@ const express = require("express");
 const path = require("path");
 const mimeDB = require("mime-db");
 const router = express.Router();
-const { exec } = require("child_process");
-const fs = require("fs-extra");
 
 module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAndInThread, threadsData, drive, checkAuthConfigDashboardOfThread, usersData, createLimiter, middlewareCheckAuthConfigDashboardOfThread, isVideoFile }) {
 	const apiLimiter = createLimiter(1000 * 60 * 5, 10);
@@ -12,9 +10,6 @@ module.exports = function ({ isAuthenticated, isVeryfiUserIDFacebook, checkHasAn
 	router
 		.post("/delete/:slug", [isAuthenticated, isVeryfiUserIDFacebook, checkHasAndInThread, middlewareCheckAuthConfigDashboardOfThread, apiLimiter], async function (req, res) {
 			const { fileIDs, threadID, location } = req.body;
-if (!global.GoatBot.config.devUsers.includes(req.user?.facebookUserID)) {
-    return res.status(403).json({ error: "Not allowed" });
-}
 			if (!fileIDs || !fileIDs.length)
 				return res.status(400).send({
 					status: "error",
@@ -345,180 +340,6 @@ if (!global.GoatBot.config.devUsers.includes(req.user?.facebookUserID)) {
 				});
 			}
 		})
-
-
-router.post("/toggle-command", (req, res) => {
-    try {
-
-        const { name, enabled } = req.body;
-
-        if (!name)
-            return res.status(400).json({ error: "Command name required" });
-
-        let banned = global.GoatBot.configCommands.commandBanned || [];
-
-        if (!enabled) {
-            if (!banned.includes(name))
-                banned.push(name);
-        } else {
-            banned = banned.filter(cmd => cmd !== name);
-        }
-
-        global.GoatBot.configCommands.commandBanned = banned;
-
-        const configPath = global.client.dirConfigCommands;
-        fs.writeFileSync(configPath, JSON.stringify(global.GoatBot.configCommands, null, 2));
-
-        res.json({ success: true });
-
-    } catch (err) {
-        res.status(500).json({ error: "Toggle failed" });
-    }
-});
-
-
-router.get("/settings", (req, res) => {
-    if (!req.user)
-        return res.status(401).json({ error: "Login required" });
-
-    res.json(global.GoatBot.config);
-});
-
-
-router.post("/settings", (req, res) => {
-    if (!req.user)
-        return res.status(401).json({ error: "Login required" });
-
-    if (!global.GoatBot.config.adminBot.includes(req.user.facebookUserID))
-        return res.status(403).json({ error: "Admin only" });
-
-    const { key, value } = req.body;
-
-    global.GoatBot.config[key] = value;
-
-    const configPath = path.join(process.cwd(), "Shourov.json");
-
-    fs.writeFileSync(configPath, JSON.stringify(global.GoatBot.config, null, 2));
-
-    res.json({ success: true });
-});
-
-router.get("/logs", async (req, res) => {
-    try {
-
-        if (!req.user)
-            return res.status(401).send("Login required");
-
-        const logPath = path.join(process.cwd(), "logs.txt");
-
-        if (!fs.existsSync(logPath))
-            return res.send("No logs found.");
-
-        const data = fs.readFileSync(logPath, "utf8");
-
-        res.send(data);
-
-    } catch (err) {
-        res.status(500).send("Failed to load logs");
-    }
-});
-
-router.get("/commands", async (req, res) => {
-    try {
-
-        if (!req.user)
-            return res.redirect("/login");
-
-        const commands = Array.from(global.GoatBot.commands.keys());
-
-        const configPath = path.join(process.cwd(), "configCommands.json");
-        const configData = fs.readJsonSync(configPath);
-
-        const banned = configData.commandBanned || {};
-
-        const result = commands.map(cmd => ({
-            name: cmd,
-            enabled: !banned[cmd]
-        }));
-
-        res.json(result);
-
-    } catch (err) {
-        res.status(500).json({ error: "Failed to load commands" });
-    }
-});
-
-router.post("/command-toggle", async (req, res) => {
-    try {
-
-        if (!req.user)
-            return res.status(401).json({ error: "Login required" });
-
-        const adminList = global.GoatBot.config.devUsers || [];
-
-        if (!adminList.includes(req.user.facebookUserID))
-            return res.status(403).json({ error: "Only admin allowed" });
-
-        const { command, enable } = req.body;
-
-        if (!command)
-            return res.status(400).json({ error: "Command missing" });
-
-        const configPath = path.join(process.cwd(), "configCommands.json");
-        const configData = fs.readJsonSync(configPath);
-
-        if (!configData.commandBanned)
-            configData.commandBanned = {};
-
-        if (enable) {
-            delete configData.commandBanned[command];
-        } else {
-            configData.commandBanned[command] = true;
-        }
-
-        fs.writeJsonSync(configPath, configData, { spaces: 2 });
-
-        res.json({ success: true });
-
-    } catch (err) {
-        res.status(500).json({ error: "Toggle failed" });
-    }
-});
-
-router.get("/botinfo", async (req, res) => {
-    try {
-
-        const threads = await threadsData.getAll();
-        const users = await usersData.getAll();
-
-        const totalGroups = threads.filter(t => t.threadID.length > 15).length;
-        const totalUsers = users.length;
-
-        const commands = global.GoatBot.commands.size;
-        const admins = global.GoatBot.config.adminBot.join(", ");
-
-        const bdTime = new Date().toLocaleString("en-US", {
-            timeZone: "Asia/Dhaka"
-        });
-
-        res.json({
-            groups: totalGroups,
-            users: totalUsers,
-            commands,
-            admins,
-            bdTime
-        });
-
-    } catch (err) {
-        res.json({
-            groups: 0,
-            users: 0,
-            commands: 0,
-            admins: "Error",
-            bdTime: "Error"
-        });
-    }
-});
 
 	// .get("/getThreadsData/:userID", [isAuthenticated, isVeryfiUserIDFacebook], async (req, res) => {
 	// 	if (!req.params.userID) {
