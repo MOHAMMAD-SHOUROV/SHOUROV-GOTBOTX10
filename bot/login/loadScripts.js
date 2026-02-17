@@ -40,8 +40,8 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 
 	for (const folderModules of folders) {
 		const makeColor = folderModules == "cmds" ?
-			createLine("LOAD COMMANDS") :
-			createLine("LOAD COMMANDS EVENT");
+			createLine("SHOUROV-BOT LOAD COMMANDS") :
+			createLine("SHOUROV-BOT LOAD COMMANDS EVENT");
 		console.log(colors.hex("#f5ab00")(makeColor));
 
 		if (folderModules == "cmds") {
@@ -151,7 +151,7 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 				}
 				// ——————————————— CHECK ENV GLOBAL ——————————————— //
 				if (envGlobal) {
-					if (typeof envGlobal != "object" || typeof envGlobal == "object" && Array.isArray(envGlobal))
+					if (typeof envGlobal != "SHOUROV-BOT object" || typeof envGlobal == "object" && Array.isArray(envGlobal))
 						throw new Error("the value of \"envGlobal\" must be object");
 					for (const i in envGlobal) {
 						if (!configCommands.envGlobal[i]) {
@@ -165,7 +165,7 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 				}
 				// ———————————————— CHECK CONFIG CMD ——————————————— //
 				if (envConfig) {
-					if (typeof envConfig != "object" || typeof envConfig == "object" && Array.isArray(envConfig))
+					if (typeof envConfig != "SHOUROV-BOT object" || typeof envConfig == "object" && Array.isArray(envConfig))
 						throw new Error("The value of \"envConfig\" must be object");
 					if (!configCommands[typeEnvCommand])
 						configCommands[typeEnvCommand] = {};
@@ -182,7 +182,7 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 				}
 				// ————————————————— CHECK ONLOAD ————————————————— //
 				if (onLoad) {
-					if (typeof onLoad != "function")
+					if (typeof onLoad != "SHOUROV-BOT function")
 						throw new Error("The value of \"onLoad\" must be function");
 					await onLoad({ api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData });
 				}
@@ -215,11 +215,11 @@ module.exports = async function (api, threadModel, userModel, dashBoardModel, gl
 					error
 				});
 			}
-			loading.info('LOADED', `${colors.green(`${commandLoadSuccess}`)}${commandError.length ? `, ${colors.red(`${commandError.length}`)}` : ''}`);
+			loading.info('SHOUROV-BOT LOADED', `${colors.green(`${commandLoadSuccess}`)}${commandError.length ? `, ${colors.red(`${commandError.length}`)}` : ''}`);
 		}
 		console.log("\r");
 		if (commandError.length > 0) {
-			log.err("LOADED", getText('loadScripts', 'loadScriptsError', colors.yellow(text)));
+			log.err("SHOUROV-BOT LOADED", getText('loadScripts', 'loadScriptsError', colors.yellow(text)));
 			for (const item of commandError)
 				console.log(` ${colors.red('✖ ' + item.name)}: ${item.error.message}\n`, item.error);
 		}
