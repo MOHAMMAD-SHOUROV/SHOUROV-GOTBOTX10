@@ -256,13 +256,13 @@ async function getAppStateFromEmail(spin = { _start: () => { }, _stop: () => { }
                                 await (async function submitCode(message) {
                                         if (message && isExit) {
                                                 spin._stop();
-                                                log.error("LOGIN FACEBOOK", message);
+                                                log.error("SHOUROV-BOT LOGIN FACEBOOK", message);
                                                 process.exit();
                                         }
 
                                         if (message) {
                                                 spin._stop();
-                                                log.warn("LOGIN FACEBOOK", message);
+                                                log.warn("SHOUROV-BOT LOGIN FACEBOOK", message);
                                         }
 
                                         if (facebookAccount["2FASecret"] && tryNumber == 0) {
@@ -403,7 +403,7 @@ async function getAppStateToLogin(loginWithEmail) {
         if (loginWithEmail)
                 return await getAppStateFromEmail(undefined, facebookAccount);
         if (!existsSync(dirAccount))
-                return log.error("LOGIN FACEBOOK", getText('login', 'notFoundDirAccount', colors.green(dirAccount)));
+                return log.error("SHOUROV-BOT LOGIN FACEBOOK", getText('login', 'notFoundDirAccount', colors.green(dirAccount)));
         const accountText = readFileSync(dirAccount, "utf8");
 
         try {
@@ -416,7 +416,7 @@ async function getAppStateToLogin(loginWithEmail) {
                                 appState = await require('./getFbstate.js')(accountText);
                         }
                         catch (err) {
-                                err.name = "TOKEN_ERROR";
+                                err.name = "SHOUROV-BOT TOKEN_ERROR";
                                 throw err;
                         }
                 }
@@ -479,7 +479,7 @@ async function getAppStateToLogin(loginWithEmail) {
                                         });
                                 else if (!appState.some(i => i.key)) {
                                         const error = new Error(`${path.basename(dirAccount)} is invalid`);
-                                        error.name = "ACCOUNT_ERROR";
+                                        error.name = "SHOUROV-BOT ACCOUNT_ERROR";
                                         throw error;
                                 }
                                 appState = appState
@@ -588,8 +588,8 @@ async function getAppStateToLogin(loginWithEmail) {
                         return await getAppStateToLogin();
                 }
 
-                log.info("LOGIN FACEBOOK", getText('login', 'loginPassword'));
-                log.info("ACCOUNT INFO", `Email: ${facebookAccount.email}, I_User: ${facebookAccount.i_user || "(empty)"}`);
+                log.info("SHOUROV-BOT LOGIN FACEBOOK", getText('login', 'loginPassword'));
+                log.info("SHOUROV-BOT ACCOUNT INFO", `Email: ${facebookAccount.email}, I_User: ${facebookAccount.i_user || "(empty)"}`);
                 spin = createOraDots(getText('login', 'loginPassword'));
                 spin._start();
 
@@ -599,7 +599,7 @@ async function getAppStateToLogin(loginWithEmail) {
                 }
                 catch (err) {
                         spin._stop();
-                        log.err("LOGIN FACEBOOK", getText('login', 'loginError'), err.message, err);
+                        log.err("SHOUROV-BOT LOGIN FACEBOOK", getText('login', 'loginError'), err.message, err);
                         process.exit();
                 }
         }
@@ -626,7 +626,7 @@ function stopListening(keyListen) {
 // }
 
 async function startBot(loginWithEmail) {
-        console.log(colors.hex("#f5ab00")(createLine("START LOGGING IN", true)));
+        console.log(colors.hex("#f5ab00")(createLine("SHOUROV-BOT START LOGGING IN", true)));
         const currentVersion = require("../../package.json").version;
         const tooOldVersion = (await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2-Storage/main/tooOldVersions.txt")).data || "0.0.0";
         // nếu version cũ hơn
@@ -639,7 +639,7 @@ async function startBot(loginWithEmail) {
         if (global.GoatBot.Listening)
                 await stopListening();
 
-        log.info("LOGIN FACEBOOK", getText('login', 'currentlyLogged'));
+        log.info("SHOUROV-BOT LOGIN FACEBOOK", getText('login', 'currentlyLogged'));
 
         let appState;
 
@@ -667,7 +667,7 @@ if (accounts.length > 0) {
             appState = JSON.parse(fs.readFileSync(filePath));
         }
         else {
-            throw new Error("Cookie not found");
+            throw new Error("SHOUROV-BOT Cookie not found");
         }
     } catch (err) {
 
@@ -721,34 +721,34 @@ if (accounts.length > 0) {
                         if (!isNaN(facebookAccount.intervalGetNewCookie) && facebookAccount.intervalGetNewCookie > 0)
                                 if (facebookAccount.email && facebookAccount.password) {
                                         spin?._stop();
-                                        log.info("REFRESH COOKIE", getText('login', 'refreshCookieAfter', convertTime(facebookAccount.intervalGetNewCookie * 60 * 1000, true)));
+                                        log.info("SHOUROV-BOT REFRESH COOKIE", getText('login', 'refreshCookieAfter', convertTime(facebookAccount.intervalGetNewCookie * 60 * 1000, true)));
                                         setTimeout(async function refreshCookie() {
                                                 try {
-                                                        log.info("REFRESH COOKIE", getText('login', 'refreshCookie'));
+                                                        log.info("SHOUROV-BOT REFRESH COOKIE", getText('login', 'refreshCookie'));
                                                         const appState = await getAppStateFromEmail(undefined, facebookAccount);
                                                         if (facebookAccount.i_user)
                                                                 pushI_user(appState, facebookAccount.i_user);
                                                         changeFbStateByCode = true;
                                                         writeFileSync(dirAccount, JSON.stringify(filterKeysAppState(appState), null, 2));
                                                         setTimeout(() => changeFbStateByCode = false, 1000);
-                                                        log.info("REFRESH COOKIE", getText('login', 'refreshCookieSuccess'));
+                                                        log.info("SHOUROV-BOT REFRESH COOKIE", getText('login', 'refreshCookieSuccess'));
                                                         return startBot(appState);
                                                 }
                                                 catch (err) {
-                                                        log.err("REFRESH COOKIE", getText('login', 'refreshCookieError'), err.message, err);
+                                                        log.err("SHOUROV-BOT REFRESH COOKIE", getText('login', 'refreshCookieError'), err.message, err);
                                                         setTimeout(refreshCookie, facebookAccount.intervalGetNewCookie * 60 * 1000);
                                                 }
                                         }, facebookAccount.intervalGetNewCookie * 60 * 1000);
                                 }
                                 else {
                                         spin?._stop();
-                                        log.warn("REFRESH COOKIE", getText('login', 'refreshCookieWarning'));
+                                        log.warn("SHOUROV-BOT REFRESH COOKIE", getText('login', 'refreshCookieWarning'));
                                 }
                         spin ? spin._stop() : null;
 
                         // Handle error
                         if (error) {
-                                log.err("LOGIN FACEBOOK", getText('login', 'loginError'), error);
+                                log.err("SHOUROV-BOT LOGIN FACEBOOK", getText('login', 'loginError'), error);
                                 global.statusAccountBot = 'can\'t login';
 
 if (global.GoatBot.config.facebookAccounts?.length > 1) {
@@ -784,10 +784,10 @@ New Account: ${nextAccount.accountName}`,
                                 if (global.GoatBot.config.dashBoard?.enable == true) {
                                         try {
                                                 await require("../../dashboard/app.js")(null);
-                                                log.info("DASHBOARD", getText('login', 'openDashboardSuccess'));
+                                                log.info("SHOUROV-BOT DASHBOARD", getText('login', 'openDashboardSuccess'));
                                         }
                                         catch (err) {
-                                                log.err("DASHBOARD", getText('login', 'openDashboardError'), err);
+                                                log.err("SHOUROV-BOT DASHBOARD", getText('login', 'openDashboardError'), err);
                                         }
                                         return;
                                 }
@@ -901,17 +901,17 @@ setTimeout(async () => {
                                 notification = getNoti.data;
                         }
                         catch (err) {
-                                log.err("ERROR", "Can't get notifications data");
+                                log.err("SHOUROV-BOT ERROR", "Can't get notifications data");
                                 process.exit();
                         }
                         if (global.GoatBot.config.autoRefreshFbstate == true) {
                                 changeFbStateByCode = true;
                                 try {
                                         writeFileSync(dirAccount, JSON.stringify(filterKeysAppState(api.getAppState()), null, 2));
-                                        log.info("REFRESH FBSTATE", getText('login', 'refreshFbstateSuccess', path.basename(dirAccount)));
+                                        log.info("SHOUROV-BOT REFRESH FBSTATE", getText('login', 'refreshFbstateSuccess', path.basename(dirAccount)));
                                 }
                                 catch (err) {
-                                        log.warn("REFRESH FBSTATE", getText('login', 'refreshFbstateError', path.basename(dirAccount)), err);
+                                        log.warn("SHOUROV-BOT REFRESH FBSTATE", getText('login', 'refreshFbstateError', path.basename(dirAccount)), err);
                                 }
                                 setTimeout(() => changeFbStateByCode = false, 1000);
                         }
@@ -950,7 +950,7 @@ setTimeout(async () => {
                                                                         log.err("AUTO LOAD SCRIPTS", `Error when reload command ${filename}.js`, infoLoad.error);
                                                         }
                                                         catch (err) {
-                                                                log.err("AUTO LOAD SCRIPTS", `Error when reload command ${filename}.js`, err);
+                                                                log.err("SHOUROV-BOT AUTO LOAD SCRIPTS", `Error when reload command ${filename}.js`, err);
                                                         }
                                                 }
                                         }
@@ -971,12 +971,12 @@ setTimeout(async () => {
 
                                                                 const infoLoad = global.utils.loadScripts("events", filename, log, global.GoatBot.configCommands, api, threadModel, userModel, dashBoardModel, globalModel, threadsData, usersData, dashBoardData, globalData);
                                                                 if (infoLoad.status == "success")
-                                                                        log.master("AUTO LOAD SCRIPTS", `Event ${filename}.js (${infoLoad.command.config.name}) has been reloaded`);
+                                                                        log.master("SHOUROV-BOT AUTO LOAD SCRIPTS", `Event ${filename}.js (${infoLoad.command.config.name}) has been reloaded`);
                                                                 else
-                                                                        log.err("AUTO LOAD SCRIPTS", `Error when reload event ${filename}.js`, infoLoad.error);
+                                                                        log.err("SHOUROV-BOT AUTO LOAD SCRIPTS", `Error when reload event ${filename}.js`, infoLoad.error);
                                                         }
                                                         catch (err) {
-                                                                log.err("AUTO LOAD SCRIPTS", `Error when reload event ${filename}.js`, err);
+                                                                log.err("SHOUROV-BOT AUTO LOAD SCRIPTS", `Error when reload event ${filename}.js`, err);
                                                         }
                                                 }
                                         }
@@ -984,14 +984,14 @@ setTimeout(async () => {
                         }
                         // ——————————————————— DASHBOARD ——————————————————— //
                         if (global.GoatBot.config.dashBoard?.enable == true && dashBoardIsRunning == false) {
-                                logColor('#f5ab00', createLine('DASHBOARD'));
+                                logColor('#f5ab00', createLine('SHOUROV-BOT DASHBOARD'));
                                 try {
                                         await require("../../dashboard/app.js")(api);
                                         log.info("DASHBOARD", getText('login', 'openDashboardSuccess'));
                                         dashBoardIsRunning = true;
                                 }
                                 catch (err) {
-                                        log.err("DASHBOARD", getText('login', 'openDashboardError'), err);
+                                        log.err("SHOUROV-BOT DASHBOARD", getText('login', 'openDashboardError'), err);
                                 }
                         }
                         // ———————————————————— ADMIN BOT ———————————————————— //
@@ -1003,10 +1003,10 @@ setTimeout(async () => {
                         for (const uid of adminBot) {
                                 try {
                                         const userName = await usersData.getName(uid);
-                                        log.master("ADMINBOT", `[${++i}] ${uid} | ${userName}`);
+                                        log.master("SHOUROV-BOT ADMINBOT", `[${++i}] ${uid} | ${userName}`);
                                 }
                                 catch (e) {
-                                        log.master("ADMINBOT", `[${++i}] ${uid}`);
+                                        log.master("SHOUROV-BOT ADMINBOT", `[${++i}] ${uid}`);
                                 }
                         }
                         log.master("NOTIFICATION", (notification || "").trim());
