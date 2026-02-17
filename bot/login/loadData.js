@@ -46,11 +46,11 @@ module.exports = async function (api, createLine) {
                                 ...allThreadDataDontHaveBot
                         ];
                         spin._stop();
-                        log.info('DATABASE', getText('loadData', 'refreshThreadDataSuccess', global.db.allThreadData.length));
+                        log.info('SHOUROV-BOT DATABASE', getText('loadData', 'refreshThreadDataSuccess', global.db.allThreadData.length));
                 }
                 catch (err) {
                         spin._stop();
-                        log.error('DATABASE', getText('loadData', 'refreshThreadDataError'), err);
+                        log.error('SHOUROV-BOT DATABASE', getText('loadData', 'refreshThreadDataError'), err);
                 }
                 finally {
                         api.setOptions({
