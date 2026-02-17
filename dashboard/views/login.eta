@@ -20,7 +20,7 @@
         <input type="password" id="password" class="form-control" />
       </div>
 
-      <div class="g-recaptcha d-flex justify-content-center" data-sitekey="6Le9HGosAAAAAG1CkqwNVYLQC38jzKaCDA1DNxBR">
+      <div class="g-recaptcha d-flex justify-content-center" data-sitekey="<%=it.gRecaptcha_siteKey%>">
       </div>
 
       <div class="row mb-2 mt-2">
